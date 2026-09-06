@@ -283,7 +283,7 @@
       </div>
 
       <!-- Live Metric Stats Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
         <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c]">
           <div class="text-[11px] font-bold text-slate-500 dark:text-teal-200/80">Active Patients</div>
           <div id="statTotalPatients" class="text-2xl font-bold text-slate-900 dark:text-white mt-1">0</div>
@@ -296,14 +296,10 @@
           <div class="text-[11px] font-bold text-teal-800 dark:text-teal-300">Pending Rx Reviews</div>
           <div id="statPendingPrescriptions" class="text-2xl font-bold text-teal-600 dark:text-teal-400 mt-1">0</div>
         </div>
-        <div class="p-3.5 rounded-2xl bg-rose-50/60 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-500/30">
-          <div class="text-[11px] font-bold text-rose-800 dark:text-rose-300">🎙️ AI Calls & Triage</div>
-          <div id="statAiCalls" class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">0</div>
-        </div>
       </div>
     </div>
 
-    <!-- WORKSPACE TABS (Prescriptions Desk, Patient Directory, & AI Calls) -->
+    <!-- WORKSPACE TABS (Prescriptions Desk & Patient Directory) -->
     <div class="flex items-center space-x-2 border-b border-slate-200 dark:border-[#133d36] pb-3 overflow-x-auto">
       <button onclick="switchTab('prescriptions')" id="tab-btn-prescriptions" class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-[#205b51] shrink-0">
         <i data-lucide="file-check-2" class="w-4 h-4 text-teal-500"></i>
@@ -314,11 +310,6 @@
         <i data-lucide="users" class="w-4 h-4 text-teal-500"></i>
         <span>Patient Directory & Jackets</span>
         <span id="tabBadgePatients" class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-[#0a231f] text-slate-700 dark:text-teal-300">0</span>
-      </button>
-      <button onclick="switchTab('calls')" id="tab-btn-calls" class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white shrink-0">
-        <i data-lucide="phone-call" class="w-4 h-4 text-teal-500"></i>
-        <span>🎙️ AI Voice Calls & Triage Desk</span>
-        <span id="tabBadgeCalls" class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30">0</span>
       </button>
     </div>
 
@@ -374,38 +365,7 @@
       </div>
     </div>
 
-    <!-- ================= TAB 3: AI VOICE CALLS & RURAL TRIAGE FEED ================= -->
-    <div id="tab-content-calls" class="hidden space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900 dark:text-white font-heading flex items-center space-x-2">
-            <i data-lucide="phone-call" class="w-5 h-5 text-rose-500"></i>
-            <span>AI Voice Calls & Rural Triage Feed</span>
-          </h2>
-          <p class="text-xs text-slate-500 dark:text-[#8ea7a3] mt-0.5">
-            Real-time feed of automated Vapi AI voice triage calls, 2Factor voice OTP logs, full conversational transcripts (Hindi & English), and immediate physician callback desk.
-          </p>
-        </div>
 
-        <div class="flex flex-wrap items-center gap-2">
-          <!-- Simulate Inbound AI Call -->
-          <button onclick="simulateInboundAiCall()" class="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-xs font-bold hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors cursor-pointer flex items-center space-x-1.5" title="Simulate an emergency incoming AI voice call">
-            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-            <span>⚡ Simulate Inbound AI Call</span>
-          </button>
-          <!-- Quick Outbound Callback -->
-          <button onclick="promptOutboundCallback()" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold shadow-md flex items-center space-x-1.5 transition-all cursor-pointer">
-            <i data-lucide="phone-outgoing" class="w-4 h-4"></i>
-            <span>📞 Call Patient Line</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Container of Call Session Cards -->
-      <div id="callsCardsContainer" class="space-y-4">
-        <!-- Populated via JS -->
-      </div>
-    </div>
 
   </main>
 
@@ -440,7 +400,6 @@
     let doctorPatients = [];
     let connectionRequestsList = [];
     let prescriptionsList = [];
-    let callingSessionsList = [];
     let activeTab = 'prescriptions';
 
     // ================= PASSWORD AUTHENTICATION GATE =================
@@ -547,7 +506,6 @@
           renderConnectionRequests();
           renderPrescriptions();
           fetchPatients();
-          fetchCallingSessions();
         }
       }
     }
@@ -559,39 +517,26 @@
 
     // ================= TABS NAVIGATION =================
     function switchTab(tab) {
-      activeTab = tab;
-      localStorage.setItem('careconnect_doctor_tab', tab);
+      activeTab = tab === 'patients' ? 'patients' : 'prescriptions';
+      localStorage.setItem('careconnect_doctor_tab', activeTab);
 
       const btnRx = document.getElementById('tab-btn-prescriptions');
       const btnPat = document.getElementById('tab-btn-patients');
-      const btnCalls = document.getElementById('tab-btn-calls');
       const contentRx = document.getElementById('tab-content-prescriptions');
       const contentPat = document.getElementById('tab-content-patients');
-      const contentCalls = document.getElementById('tab-content-calls');
 
       const activeClass = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-[#205b51] shrink-0";
       const inactiveClass = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white shrink-0";
 
-      if (tab === 'prescriptions') {
-        if (btnRx) btnRx.className = activeClass;
-        if (btnPat) btnPat.className = inactiveClass;
-        if (btnCalls) btnCalls.className = inactiveClass;
-        if (contentRx) contentRx.classList.remove('hidden');
-        if (contentPat) contentPat.classList.add('hidden');
-        if (contentCalls) contentCalls.classList.add('hidden');
-      } else if (tab === 'patients') {
+      if (activeTab === 'patients') {
         if (btnPat) btnPat.className = activeClass;
         if (btnRx) btnRx.className = inactiveClass;
-        if (btnCalls) btnCalls.className = inactiveClass;
         if (contentPat) contentPat.classList.remove('hidden');
         if (contentRx) contentRx.classList.add('hidden');
-        if (contentCalls) contentCalls.classList.add('hidden');
-      } else if (tab === 'calls') {
-        if (btnCalls) btnCalls.className = activeClass;
-        if (btnRx) btnRx.className = inactiveClass;
+      } else {
+        if (btnRx) btnRx.className = activeClass;
         if (btnPat) btnPat.className = inactiveClass;
-        if (contentCalls) contentCalls.classList.remove('hidden');
-        if (contentRx) contentRx.classList.add('hidden');
+        if (contentRx) contentRx.classList.remove('hidden');
         if (contentPat) contentPat.classList.add('hidden');
       }
       lucide.createIcons();
@@ -601,7 +546,6 @@
       fetchConnectionRequests();
       fetchPrescriptions();
       fetchPatients();
-      fetchCallingSessions();
     }
 
     // ================= PATIENT LINK REQUESTS & APPROVAL =================
@@ -1157,341 +1101,6 @@
       showToast(`Opening WhatsApp reminder for ${name}...`);
     }
 
-    // ================= AI VOICE CALLS & RURAL TRIAGE FEED =================
-    async function fetchCallingSessions() {
-      try {
-        const res = await fetch('/api/calling-sessions');
-        const data = await res.json();
-        callingSessionsList = data.sessions || [];
-        renderCallingSessions();
-      } catch (err) {
-        console.warn("Calling sessions fetch error:", err);
-      }
-    }
-
-    function renderCallingSessions() {
-      const container = document.getElementById('callsCardsContainer');
-      const statCalls = document.getElementById('statAiCalls');
-      const tabBadge = document.getElementById('tabBadgeCalls');
-      if (!container) return;
-
-      if (statCalls) statCalls.innerText = callingSessionsList.length;
-      if (tabBadge) {
-        tabBadge.innerText = `${callingSessionsList.length} LOGGED`;
-      }
-
-      if (callingSessionsList.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white dark:bg-[#0a231f] border-2 border-dashed border-slate-200 dark:border-[#133d36] rounded-3xl p-10 sm:p-14 text-center space-y-4">
-            <div class="w-16 h-16 rounded-3xl bg-rose-500/10 text-rose-600 dark:text-rose-400 mx-auto flex items-center justify-center text-3xl">
-              🎙️
-            </div>
-            <div class="space-y-1">
-              <h3 class="text-base font-bold text-slate-900 dark:text-white font-heading">No Voice Calls or Triage Sessions Logged Yet</h3>
-              <p class="text-xs text-slate-500 dark:text-[#8ea7a3] max-w-md mx-auto leading-relaxed">
-                When patients connect to the Vapi Voice AI assistant, verify via 2Factor Voice OTP, or submit symptom check-ins, full transcripts and clinical triage scores appear here in real time.
-              </p>
-            </div>
-            <button onclick="simulateInboundAiCall()" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold inline-flex items-center space-x-1.5 shadow-md transition-all cursor-pointer">
-              <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-              <span>⚡ Simulate Inbound AI Triage Call</span>
-            </button>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      container.innerHTML = callingSessionsList.map(s => {
-        const isRed = (s.triageScore || '').toUpperCase() === 'RED';
-        const isAmber = (s.triageScore || '').toUpperCase() === 'AMBER';
-        const isGreen = !isRed && !isAmber;
-
-        let triageBadge = '';
-        let cardBorder = 'border-slate-200 dark:border-[#17433c] bg-white dark:bg-[#061915]';
-
-        if (isRed) {
-          cardBorder = 'border-rose-300 dark:border-rose-600/60 bg-rose-50/20 dark:bg-rose-950/15 shadow-sm';
-          triageBadge = `
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-500 text-white border border-rose-600 flex items-center space-x-1.5 shadow-xs animate-pulse">
-              <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-              <span>RED • IMMEDIATE DISPATCH</span>
-            </span>
-          `;
-        } else if (isAmber) {
-          cardBorder = 'border-amber-300 dark:border-amber-600/50 bg-amber-50/20 dark:bg-amber-950/10 shadow-xs';
-          triageBadge = `
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-slate-900 border border-amber-600 flex items-center space-x-1.5">
-              <span>🟡 AMBER • CLINICAL REVIEW</span>
-            </span>
-          `;
-        } else {
-          triageBadge = `
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center space-x-1.5">
-              <span>🟢 GREEN • ROUTINE / STABLE</span>
-            </span>
-          `;
-        }
-
-        let typeLabel = s.callType || 'VAPI_AI_TRIAGE';
-        if (typeLabel === 'VAPI_AI_TRIAGE') typeLabel = '🎙️ Vapi AI Voice Triage';
-        else if (typeLabel === 'DOCTOR_OUTBOUND_CALLBACK') typeLabel = '📞 Doctor Outbound Callback';
-        else if (typeLabel === 'SCHEDULED_TELECONSULT_MEET') typeLabel = '📅 Teleconsult Request';
-        else if (typeLabel === 'AI_VOICE_TRIAGE_INTAKE') typeLabel = '🤖 AI Symptom Intake';
-
-        const lines = (s.fullTranscript || '').split('\n').filter(Boolean);
-
-        return `
-          <div class="rounded-3xl border ${cardBorder} p-5 sm:p-6 space-y-4 transition-all">
-            <!-- Header Row -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#17433c]">
-              <div class="space-y-1">
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="text-base font-bold text-slate-900 dark:text-white font-heading flex items-center space-x-1.5">
-                    <span>${escapeHtml(s.patientName || 'Rural Patient')}</span>
-                  </h3>
-                  <span class="font-mono text-xs px-2.5 py-0.5 rounded-lg bg-teal-50 dark:bg-[#123832] text-teal-700 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-700/30">
-                    ${escapeHtml(s.id)}
-                  </span>
-                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#123832] text-slate-700 dark:text-teal-200">
-                    ${escapeHtml(typeLabel)}
-                  </span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-teal-200/70">
-                  <span>📞 +91 ${escapeHtml(s.callerPhone || '9876543210')}</span>
-                  <span>•</span>
-                  <span>📍 ${escapeHtml(s.village || 'Sonpur Sector')}</span>
-                  <span>•</span>
-                  <span>⏱️ Duration: <strong>${escapeHtml(s.duration || '2m 10s')}</strong></span>
-                  <span>•</span>
-                  <span class="text-slate-400 dark:text-slate-500">${escapeHtml(s.timestamp || 'Just now')}</span>
-                </div>
-              </div>
-
-              <!-- Triage Badge & Status -->
-              <div class="flex items-center space-x-2 shrink-0">
-                ${triageBadge}
-              </div>
-            </div>
-
-            <!-- Symptoms & Clinical Observations Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-[#0b2420] border border-slate-200 dark:border-[#17433c] space-y-1">
-                <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Reported Symptoms</span>
-                <span class="font-bold text-slate-900 dark:text-white">${escapeHtml(s.symptomsDetected || 'None reported')}</span>
-              </div>
-              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-[#0b2420] border border-slate-200 dark:border-[#17433c] space-y-1">
-                <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Medication Compliance</span>
-                <span class="font-bold ${s.medicationCompliance ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}">
-                  ${s.medicationCompliance ? '✅ Morning Medications Taken' : '⚠️ Medication Missed / Interrupted'}
-                </span>
-              </div>
-              <div class="p-3 rounded-2xl bg-slate-50 dark:bg-[#0b2420] border border-slate-200 dark:border-[#17433c] space-y-1">
-                <span class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Field Escalation / ANM</span>
-                <span class="font-bold text-slate-900 dark:text-white flex items-center space-x-1">
-                  <span>${s.requestedHomeVisit ? '🚨 Home Visit Requested' : 'Routine Teleconsult'}</span>
-                  <span class="text-[10px] text-teal-600 dark:text-teal-400 font-mono">(${escapeHtml(s.assignedANM || 'Sunita Devi')})</span>
-                </span>
-              </div>
-            </div>
-
-            <!-- Audio & Dialogue Transcript Box -->
-            <div class="space-y-1.5">
-              <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-teal-200">
-                <div class="flex items-center space-x-1.5">
-                  <i data-lucide="message-square" class="w-4 h-4 text-teal-500"></i>
-                  <span>AI Voice Dialogue Transcript (Hindi / English Tele-Intake):</span>
-                </div>
-                <span class="text-[10px] text-teal-600 dark:text-teal-400 font-mono">Audio AI Tele-Engine</span>
-              </div>
-              <div class="p-3.5 rounded-2xl bg-slate-900 text-slate-100 font-mono text-xs space-y-2 max-h-48 overflow-y-auto border border-slate-800 shadow-inner">
-                ${lines.map(line => {
-                  const isAgent = line.includes('AI') || line.includes('Assistant') || line.includes('Dr.');
-                  return `
-                    <div class="flex items-start space-x-2">
-                      <span class="${isAgent ? 'text-teal-400 font-bold shrink-0' : 'text-amber-300 font-bold shrink-0'}">
-                        ${isAgent ? '🤖' : '🗣️'}
-                      </span>
-                      <span class="${isAgent ? 'text-teal-200' : 'text-slate-200'}">${escapeHtml(line)}</span>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-
-            <!-- Doctor Notes & Actions Footer -->
-            <div class="pt-3 border-t border-slate-100 dark:border-[#17433c] space-y-3">
-              <div class="flex flex-col sm:flex-row gap-2">
-                <input type="text" id="session-notes-${s.id}" value="${escapeHtml(s.doctorNotes || '')}" placeholder="Add clinical directive / observation for this session..." class="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-[#164d41] bg-slate-50 dark:bg-[#061915] text-slate-900 dark:text-white focus:outline-none focus:border-teal-500">
-                <button onclick="saveSessionDoctorNotes('${s.id}')" class="px-3.5 py-2 rounded-xl bg-slate-200 dark:bg-[#123832] hover:bg-slate-300 dark:hover:bg-[#17433c] text-slate-800 dark:text-white text-xs font-bold flex items-center justify-center space-x-1 transition-colors cursor-pointer shrink-0">
-                  <i data-lucide="save" class="w-3.5 h-3.5"></i>
-                  <span>Save Note</span>
-                </button>
-              </div>
-
-              <div class="flex flex-wrap gap-2 items-center justify-between pt-1">
-                <div class="flex flex-wrap gap-2 items-center">
-                  <!-- Direct Outbound Call -->
-                  <button onclick="triggerDoctorCallback('${escapeHtml(s.callerPhone)}', '${escapeHtml(s.patientName)}')" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold flex items-center space-x-1.5 shadow-xs transition-colors cursor-pointer">
-                    <i data-lucide="phone" class="w-3.5 h-3.5"></i>
-                    <span>📞 Call Patient Now</span>
-                  </button>
-
-                  <!-- Dispatch ANM Worker -->
-                  <button onclick="dispatchAnmToCall('${s.id}', '${escapeHtml(s.patientName)}', '${escapeHtml(s.village)}')" class="px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-xs font-bold hover:bg-rose-100 transition-colors flex items-center space-x-1.5 cursor-pointer">
-                    <i data-lucide="truck" class="w-3.5 h-3.5"></i>
-                    <span>🚑 Dispatch ANM</span>
-                  </button>
-                </div>
-
-                <!-- WhatsApp Teleconsult Follow-up -->
-                <button onclick="triggerWhatsAppCallFollowup('${escapeHtml(s.callerPhone)}', '${escapeHtml(s.patientName)}', '${escapeHtml(s.triageScore)}')" class="px-3 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center space-x-1 cursor-pointer transition-colors" title="Send WhatsApp Clinical Message">
-                  <span>💬 WhatsApp Notice</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      lucide.createIcons();
-    }
-
-    async function saveSessionDoctorNotes(id) {
-      const input = document.getElementById(`session-notes-${id}`);
-      const notes = input ? input.value : '';
-      showToast('Saving clinical note to session...');
-      try {
-        const res = await fetch(`/api/calling-sessions/${id}/notes`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ doctorNotes: notes })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast('✅ Physician note saved successfully!');
-          fetchCallingSessions();
-        } else {
-          showToast(data.error || 'Failed to save note', true);
-        }
-      } catch (e) {
-        showToast('Network error saving note', true);
-      }
-    }
-
-    async function triggerDoctorCallback(phone, patientName) {
-      if (!phone) return showToast('No phone number available for callback', true);
-      showToast(`Initiating direct clinical outbound tele-call to ${patientName || 'Patient'} (+91 ${phone})...`);
-      try {
-        const res = await fetch('/api/calling-sessions/trigger-callback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phone,
-            patientName: patientName || 'Rural Patient',
-            doctorName: currentDoctorProfile.name,
-            notes: `Direct telehealth teleconsultation callback initiated by ${currentDoctorProfile.name}.`
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`📞 Direct teleconsultation call connected to ${phone}!`);
-          triggerConfetti();
-          fetchCallingSessions();
-        } else {
-          showToast(data.error || 'Failed to trigger callback', true);
-        }
-      } catch (e) {
-        showToast('Network error connecting tele-call', true);
-      }
-    }
-
-    async function dispatchAnmToCall(sessionId, patientName, village) {
-      showToast(`Dispatching ANM Sunita Devi to ${patientName} (${village})...`);
-      try {
-        const res = await fetch(`/api/calling-sessions/${sessionId}/notes`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            status: 'ANM_DISPATCHED',
-            assignedANM: 'ANM Sunita Devi',
-            doctorNotes: `ANM Sunita Devi dispatched for acute home follow-up at ${village}. Authorized by ${currentDoctorProfile.name}.`
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`🚑 Emergency ANM dispatched to ${patientName} at ${village}!`);
-          triggerConfetti();
-          fetchCallingSessions();
-        } else {
-          showToast(data.error || 'Failed to dispatch ANM', true);
-        }
-      } catch (e) {
-        showToast('Network error dispatching ANM', true);
-      }
-    }
-
-    async function simulateInboundAiCall() {
-      showToast('Simulating live incoming Vapi AI Voice Triage call...');
-      const sampleNames = ["Sunita Kumari", "Ram Sevak Yadav", "Manju Devi", "Pooja Sharma"];
-      const randName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
-      const randPhone = "9" + Math.floor(100000000 + Math.random() * 900000000);
-
-      try {
-        const res = await fetch('/api/calling-sessions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            callerPhone: randPhone,
-            patientName: `${randName} (Inbound AI Voice)`,
-            village: "Sonpur Ward 4",
-            callType: "VAPI_AI_TRIAGE",
-            duration: "2m 35s",
-            status: "ALERT_FLAGGED",
-            triageScore: "RED",
-            symptomsDetected: "Chest tightness, severe breathless palpitation, elevated pulse",
-            medicationCompliance: 0,
-            requestedHomeVisit: 1,
-            fullTranscript: `[00:03] AI Assistant: "नमस्ते ${randName} जी, केयरकनेक्ट वॉयस आपातकालीन डेस्क में आपका स्वागत है। क्या परेशानी हो रही है?"\n[00:12] ${randName}: "नमस्ते डॉक्टर साहब... मुझे सीने में बहुत भारीपन और सांस लेने में दिक्कत हो रही है।"\n[00:25] AI Assistant: "क्या आपने अपनी बीपी की गोली ली थी?"\n[00:30] ${randName}: "नहीं, आज सुबह छूट गई थी। बहुत घबराहट हो रही है।"\n[00:42] AI Assistant: "तुरंत शांत बैठें। आपका केस रेड अलर्ट स्तर पर मार्क करके डॉ. प्रजन और नजदीकी ANM को तुरंत ट्रांसमिट कर दिया गया है।"`,
-            doctorNotes: "URGENT: Automated Red Alert generated by Vapi Voice AI.",
-            assignedANM: "ANM Sunita Devi"
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`⚡ Incoming RED ALERT AI Call logged from ${randName}!`);
-          triggerConfetti();
-          switchTab('calls');
-          fetchCallingSessions();
-        } else {
-          showToast(data.error || 'Failed to simulate inbound call', true);
-        }
-      } catch (e) {
-        showToast('Network error simulating call', true);
-      }
-    }
-
-    function promptOutboundCallback() {
-      const phone = prompt("Enter patient phone number to call (10 digits):", "9876543210");
-      if (phone && phone.trim()) {
-        const name = prompt("Enter patient name:", "Rural Patient");
-        triggerDoctorCallback(phone.trim(), name ? name.trim() : "Rural Patient");
-      }
-    }
-
-    function triggerWhatsAppCallFollowup(phone, name, triageScore) {
-      const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
-      const isRed = (triageScore || '').toUpperCase() === 'RED';
-      const msg = `🏥 *CareConnect Urgent Clinical Communication — ${currentDoctorProfile.name}*\n\n` +
-        `Namaste ${name},\n` +
-        `We have received your automated voice consultation intake on our clinical command desk.\n` +
-        (isRed ? `🚨 *URGENT NOTICE*: Your reported symptoms indicate priority care. Please stay seated. We have alerted our field ANM worker to assist you.\n` : `Your triage status is under active review. Please take your prescribed medicines with clean water.\n`) +
-        `\nAttending Doctor: ${currentDoctorProfile.name} (${currentDoctorProfile.code})\nCareConnect Rural Telehealth Network`;
-      const url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank');
-      showToast(`Opening WhatsApp triage follow-up for ${name}...`);
-    }
-
     // ================= THEME & UI HELPERS =================
     function toggleTheme() {
       sessionStorage.setItem('careconnect_theme_user_set', 'true');
@@ -1583,14 +1192,13 @@
       initTheme();
       checkDoctorAuth();
 
-      // Poll connection requests, scanned prescriptions, and AI calling sessions every 2.5 seconds
+      // Poll connection requests and scanned prescriptions every 2.5 seconds
       setInterval(() => {
         const isAuth = localStorage.getItem('prescripto_doctor_auth') === 'true' || 
                        sessionStorage.getItem('prescripto_doctor_auth') === 'true';
         if (isAuth) {
           fetchConnectionRequests();
           fetchPrescriptions();
-          fetchCallingSessions();
         }
       }, 2500);
     });

@@ -260,8 +260,28 @@ function setupTablesAndSeed() {
       )
     `);
 
+    // Create patient_connection_requests table for real-time doctor approval workflow
+    db.run(`
+      CREATE TABLE IF NOT EXISTS patient_connection_requests (
+        id TEXT PRIMARY KEY,
+        doctorCode TEXT,
+        doctorName TEXT,
+        patientName TEXT,
+        patientPhone TEXT,
+        patientAge INTEGER,
+        patientGender TEXT,
+        patientAbha TEXT,
+        status TEXT DEFAULT 'PENDING_APPROVAL',
+        createdAt TEXT,
+        approvedAt TEXT
+      )
+    `);
+
+    // Clean up mock call records so doctor portal shows only genuine activity
+    db.run("DELETE FROM calling_sessions WHERE id LIKE 'CALL-70%'");
+
     db.get("SELECT COUNT(*) as count FROM calling_sessions", [], (err, row) => {
-      if (!err && row && row.count === 0) {
+      if (false && !err && row && row.count === 0) {
         console.log(" Seeding initial calling session collector records...");
         const callStmt = db.prepare(`
           INSERT INTO calling_sessions (id, timestamp, callerPhone, patientName, village, callType, duration, status, triageScore, symptomsDetected, medicationCompliance, requestedHomeVisit, fullTranscript, doctorNotes, assignedANM)
@@ -1661,13 +1681,12 @@ app.post("/api/patients/link-doctor", (req, res) => {
   }
 });
 
-// ================= PATIENT-DOCTOR CONNECTION REQUESTS (WAITING POINT & APPROVAL) =================
-const patientConnectionRequests = new Map();
+// ================= PATIENT-DOCTOR CONNECTION REQUESTS (SQLITE SOURCE OF TRUTH) =================
 
-// 3a. POST request connection with a doctor (enters PENDING_APPROVAL waiting point)
+// 3a. POST request connection with a doctor (enters PENDING_APPROVAL in SQLite)
 app.post("/api/patients/request-doctor-connection", (req, res) => {
   try {
-    const { doctorCode, name, phone, age, gender, abhaId } = req.body;
+    const { doctorCode, name, phone, age, gender, village, abhaId } = req.body;
     if (!doctorCode) {
       return res.status(400).json({ success: false, error: "Doctor clinical code is required." });
     }
@@ -1675,133 +1694,183 @@ app.post("/api/patients/request-doctor-connection", (req, res) => {
     const cleanPhone = (phone || "9999999999").toString().replace(/\D/g, "").slice(-10);
 
     resolveDoctor(cleanCode, (err, doc) => {
+      const docName = (doc && doc.name) || "Dr. Prajan Radhakrishnan, MD";
       const reqId = "CONN-" + Math.floor(1000 + Math.random() * 9000);
-      const connObj = {
-        id: reqId,
-        doctorCode: cleanCode,
-        doctorName: doc.name,
-        patientName: name || "Patient",
-        patientPhone: cleanPhone,
-        patientAge: age || 28,
-        patientGender: gender || "Female",
-        patientAbha: abhaId || "91-4829-1039-4821",
-        status: "PENDING_APPROVAL",
-        createdAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-      };
+      const createdAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const pName = name || "Patient";
+      const pAge = age || 28;
+      const pGender = gender || "Female";
+      const pAbha = abhaId || "91-4829-1039-4821";
 
-      patientConnectionRequests.set(cleanPhone, connObj);
-      console.log(`[Doctor Connection Request] Patient ${connObj.patientName} (+91 ${cleanPhone}) requested connection with ${cleanCode} (${doc.name}). Status: PENDING_APPROVAL.`);
+      db.run(
+        `INSERT INTO patient_connection_requests (id, doctorCode, doctorName, patientName, patientPhone, patientAge, patientGender, patientAbha, status, createdAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING_APPROVAL', ?)`,
+        [reqId, cleanCode, docName, pName, cleanPhone, pAge, pGender, pAbha, createdAt],
+        function (dbErr) {
+          if (dbErr) {
+            console.error("[SQL Error inserting connection request]:", dbErr);
+            return res.status(500).json({ success: false, error: dbErr.message });
+          }
+          console.log(`[Doctor Connection Request SQL] Patient ${pName} (+91 ${cleanPhone}) requested connection with ${cleanCode} (${docName}). ID: ${reqId}. Status: PENDING_APPROVAL.`);
 
-      return res.status(200).json({
-        success: true,
-        status: "PENDING_APPROVAL",
-        requestId: reqId,
-        doctorCode: cleanCode,
-        doctorName: doc.name,
-        message: "Connection request submitted to clinician. Awaiting doctor approval."
-      });
+          return res.status(200).json({
+            success: true,
+            status: "PENDING_APPROVAL",
+            requestId: reqId,
+            doctorCode: cleanCode,
+            doctorName: docName,
+            message: "Connection request submitted to clinician. Awaiting doctor approval."
+          });
+        }
+      );
     });
   } catch (e) {
     return res.status(500).json({ success: false, error: e.message });
   }
 });
 
-// 3b. GET connection requests (for Doctor Portal)
+// 3b. GET connection requests directly from SQLite (for Doctor Portal)
 app.get("/api/patients/connection-requests", (req, res) => {
-  const list = Array.from(patientConnectionRequests.values());
-  return res.status(200).json({ success: true, requests: list });
+  const doctorCode = req.query.doctorCode ? req.query.doctorCode.trim().toUpperCase() : null;
+  let sql = "SELECT * FROM patient_connection_requests ORDER BY rowid DESC";
+  let params = [];
+  if (doctorCode) {
+    sql = "SELECT * FROM patient_connection_requests WHERE doctorCode = ? ORDER BY rowid DESC";
+    params = [doctorCode];
+  }
+  db.all(sql, params, (err, rows) => {
+    if (err) {
+      console.error("[SQL Error querying connection requests]:", err);
+      return res.status(500).json({ success: false, error: err.message, requests: [] });
+    }
+    return res.status(200).json({ success: true, requests: rows || [] });
+  });
 });
 
-// 3c. POST approve connection (Doctor approves link)
+// 3c. POST approve connection in SQLite (Doctor approves link)
 app.post("/api/patients/approve-connection", (req, res) => {
   try {
     const { phone, requestId } = req.body;
-    let foundKey = null;
-    let foundReq = null;
+    const cleanPhone = phone ? phone.toString().replace(/\D/g, "").slice(-10) : "";
+    const approvedAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    for (const [k, v] of patientConnectionRequests.entries()) {
-      if ((phone && k === phone.replace(/\D/g, "").slice(-10)) || (requestId && v.id === requestId)) {
-        foundKey = k;
-        foundReq = v;
-        break;
+    let sqlFind = "SELECT * FROM patient_connection_requests WHERE id = ? OR patientPhone LIKE ? ORDER BY rowid DESC LIMIT 1";
+    let paramsFind = [requestId || "___NONE___", cleanPhone ? `%${cleanPhone}%` : "___NONE___"];
+
+    db.get(sqlFind, paramsFind, (err, foundReq) => {
+      if (err) {
+        return res.status(500).json({ success: false, error: err.message });
       }
-    }
 
-    if (!foundReq && phone) {
-      const cleanP = phone.replace(/\D/g, "").slice(-10);
-      foundReq = {
-        id: "CONN-" + Math.floor(1000 + Math.random() * 9000),
-        doctorCode: "DOC-4829",
-        doctorName: "Dr. Prajan Radhakrishnan, MD",
-        patientName: "Patient",
-        patientPhone: cleanP,
-        status: "APPROVED"
-      };
-      patientConnectionRequests.set(cleanP, foundReq);
-    }
+      if (!foundReq && cleanPhone) {
+        const newId = "CONN-" + Math.floor(1000 + Math.random() * 9000);
+        foundReq = {
+          id: newId,
+          doctorCode: "DOC-4829",
+          doctorName: "Dr. Prajan Radhakrishnan, MD",
+          patientName: "Patient",
+          patientPhone: cleanPhone,
+          patientAge: 28,
+          patientGender: "Female",
+          patientAbha: "91-4829-1039-4821",
+          status: "APPROVED",
+          createdAt: approvedAt,
+          approvedAt: approvedAt
+        };
+        db.run(
+          `INSERT INTO patient_connection_requests (id, doctorCode, doctorName, patientName, patientPhone, patientAge, patientGender, patientAbha, status, createdAt, approvedAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'APPROVED', ?, ?)`,
+          [foundReq.id, foundReq.doctorCode, foundReq.doctorName, foundReq.patientName, foundReq.patientPhone, foundReq.patientAge, foundReq.patientGender, foundReq.patientAbha, approvedAt, approvedAt]
+        );
+      }
 
-    if (foundReq) {
-      foundReq.status = "APPROVED";
-      foundReq.approvedAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      if (foundReq) {
+        db.run(
+          `UPDATE patient_connection_requests SET status = 'APPROVED', approvedAt = ? WHERE id = ? OR patientPhone LIKE ?`,
+          [approvedAt, foundReq.id, `%${foundReq.patientPhone}%`],
+          (upErr) => {
+            if (upErr) console.error("Error updating patient_connection_requests:", upErr);
 
-      resolveDoctor(foundReq.doctorCode, (err, doc) => {
-        const docName = (doc && doc.name) || foundReq.doctorName || "Dr. Prajan Radhakrishnan, MD";
-        db.get("SELECT * FROM patients WHERE phone LIKE ?", [`%${foundReq.patientPhone}%`], (pErr, existing) => {
-          if (!pErr && existing) {
-            db.run(`UPDATE patients SET doctorName = ? WHERE id = ?`, [docName, existing.id]);
-          } else {
-            const newPatId = "PAT-" + Math.floor(100 + Math.random() * 900);
-            db.run(
-              `INSERT INTO patients (id, name, age, gender, phone, village, abhaId, diagnosis, doctorName, assignedANM, activeRxId, compliance, status, lastVisit, doctorNotes, history)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-              [
-                newPatId,
-                foundReq.patientName || "Patient",
-                foundReq.patientAge || 28,
-                foundReq.patientGender || "Female",
-                `+91 ${foundReq.patientPhone}`,
-                "Sonpur Ward 2",
-                foundReq.patientAbha || "91-4829-1039-4821",
-                "Patient-Doctor Link Approved",
-                docName,
-                "Sunita Sharma",
-                "RX-1001",
-                "92%",
-                "STABLE",
-                "Today (Approved Link)",
-                `Clinical connection approved via doctor command desk (${foundReq.doctorCode}).`,
-                "ABDM teleconsultation connection confirmed."
-              ]
-            );
+            // Also synchronize into patients table
+            resolveDoctor(foundReq.doctorCode, (dErr, doc) => {
+              const docName = (doc && doc.name) || foundReq.doctorName || "Dr. Prajan Radhakrishnan, MD";
+              db.get("SELECT * FROM patients WHERE phone LIKE ?", [`%${foundReq.patientPhone}%`], (pErr, existing) => {
+                if (!pErr && existing) {
+                  db.run(`UPDATE patients SET doctorName = ? WHERE id = ?`, [docName, existing.id]);
+                } else {
+                  const newPatId = "PAT-" + Math.floor(100 + Math.random() * 900);
+                  db.run(
+                    `INSERT INTO patients (id, name, age, gender, phone, village, abhaId, diagnosis, doctorName, assignedANM, activeRxId, compliance, status, lastVisit, doctorNotes, history)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                      newPatId,
+                      foundReq.patientName || "Patient",
+                      foundReq.patientAge || 28,
+                      foundReq.patientGender || "Female",
+                      `+91 ${foundReq.patientPhone}`,
+                      "Sonpur Ward 2",
+                      foundReq.patientAbha || "91-4829-1039-4821",
+                      "Patient-Doctor Link Approved",
+                      docName,
+                      "Sunita Sharma",
+                      "RX-1001",
+                      "95%",
+                      "STABLE",
+                      "Today (Approved Link)",
+                      `Clinical connection approved via doctor command desk (${foundReq.doctorCode}).`,
+                      "ABDM teleconsultation connection confirmed."
+                    ]
+                  );
+                }
+              });
+            });
+
+            foundReq.status = "APPROVED";
+            foundReq.approvedAt = approvedAt;
+            console.log(`[Doctor Connection Approved SQL] Link approved for patient ${foundReq.patientName} (+91 ${foundReq.patientPhone}) with ${foundReq.doctorCode}.`);
+            return res.status(200).json({ success: true, status: "APPROVED", request: foundReq });
           }
-        });
-      });
-
-      console.log(`[Doctor Connection Approved] Link approved for patient ${foundReq.patientName} (+91 ${foundReq.patientPhone}) with ${foundReq.doctorCode}.`);
-      return res.status(200).json({ success: true, status: "APPROVED", request: foundReq });
-    }
-
-    return res.status(404).json({ success: false, error: "Connection request not found." });
+        );
+      } else {
+        return res.status(404).json({ success: false, error: "Connection request not found." });
+      }
+    });
   } catch (e) {
     return res.status(500).json({ success: false, error: e.message });
   }
 });
 
-// 3c-2. POST approve ALL connections (Doctor approves all pending patient link requests)
+// 3c-2. POST approve ALL connections in SQLite (Doctor approves all pending patient link requests)
 app.post("/api/patients/approve-all-connections", (req, res) => {
   try {
     const { doctorCode } = req.body;
     const cleanDocCode = doctorCode ? doctorCode.trim().toUpperCase() : null;
-    const approvedList = [];
+    const approvedAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    for (const [phone, reqObj] of patientConnectionRequests.entries()) {
-      if (reqObj.status === "PENDING_APPROVAL") {
-        if (!cleanDocCode || reqObj.doctorCode === cleanDocCode) {
-          reqObj.status = "APPROVED";
-          reqObj.approvedAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-          approvedList.push(reqObj);
+    let sqlFind = "SELECT * FROM patient_connection_requests WHERE status = 'PENDING_APPROVAL'";
+    let paramsFind = [];
+    if (cleanDocCode) {
+      sqlFind += " AND doctorCode = ?";
+      paramsFind.push(cleanDocCode);
+    }
 
-          resolveDoctor(reqObj.doctorCode, (err, doc) => {
+    db.all(sqlFind, paramsFind, (err, rows) => {
+      if (err) return res.status(500).json({ success: false, error: err.message });
+      const pendingRows = rows || [];
+
+      let sqlUp = "UPDATE patient_connection_requests SET status = 'APPROVED', approvedAt = ? WHERE status = 'PENDING_APPROVAL'";
+      let paramsUp = [approvedAt];
+      if (cleanDocCode) {
+        sqlUp += " AND doctorCode = ?";
+        paramsUp.push(cleanDocCode);
+      }
+
+      db.run(sqlUp, paramsUp, function (upErr) {
+        if (upErr) return res.status(500).json({ success: false, error: upErr.message });
+
+        // Update each into patients table
+        pendingRows.forEach(reqObj => {
+          resolveDoctor(reqObj.doctorCode, (dErr, doc) => {
             const docName = (doc && doc.name) || reqObj.doctorName || "Dr. Prajan Radhakrishnan, MD";
             db.get("SELECT * FROM patients WHERE phone LIKE ?", [`%${reqObj.patientPhone}%`], (pErr, existing) => {
               if (!pErr && existing) {
@@ -1833,73 +1902,77 @@ app.post("/api/patients/approve-all-connections", (req, res) => {
               }
             });
           });
-        }
-      }
-    }
+        });
 
-    console.log(`[Doctor Connection Approved All] Approved ${approvedList.length} patient connections.`);
-    return res.status(200).json({ success: true, count: approvedList.length, approved: approvedList });
+        console.log(`[Doctor Connection Approved All SQL] Approved ${pendingRows.length} patient connections.`);
+        return res.status(200).json({ success: true, count: pendingRows.length, approved: pendingRows });
+      });
+    });
   } catch (e) {
     return res.status(500).json({ success: false, error: e.message });
   }
 });
 
-// 3d. GET connection status for patient
+// 3d. GET connection status directly from SQLite
 app.get("/api/patients/connection-status", (req, res) => {
   const phone = (req.query.phone || "").toString().replace(/\D/g, "").slice(-10);
+  const requestId = req.query.requestId || "";
 
-  // 1. Direct map key check
-  if (phone && patientConnectionRequests.has(phone)) {
-    const found = patientConnectionRequests.get(phone);
-    return res.status(200).json({
-      success: true,
-      status: found.status,
-      doctorCode: found.doctorCode,
-      doctorName: found.doctorName,
-      requestId: found.id
-    });
+  let sql = "SELECT * FROM patient_connection_requests WHERE 1=1";
+  let params = [];
+
+  if (requestId && phone) {
+    sql += " AND (id = ? OR patientPhone LIKE ?)";
+    params.push(requestId, `%${phone}%`);
+  } else if (requestId) {
+    sql += " AND id = ?";
+    params.push(requestId);
+  } else if (phone) {
+    sql += " AND patientPhone LIKE ?";
+    params.push(`%${phone}%`);
   }
 
-  // 2. Scan all requests in map
-  if (patientConnectionRequests.size > 0) {
-    const all = Array.from(patientConnectionRequests.values());
-    if (phone) {
-      const match = all.find(r => r.patientPhone && r.patientPhone.replace(/\D/g, "").slice(-10) === phone);
-      if (match) {
+  sql += " ORDER BY rowid DESC LIMIT 1";
+
+  db.get(sql, params, (err, row) => {
+    if (!err && row) {
+      return res.status(200).json({
+        success: true,
+        status: row.status,
+        doctorCode: row.doctorCode,
+        doctorName: row.doctorName,
+        requestId: row.id
+      });
+    }
+
+    // Fallback check: if there is ANY approved request in DB
+    db.get("SELECT * FROM patient_connection_requests WHERE status = 'APPROVED' ORDER BY rowid DESC LIMIT 1", [], (aErr, approved) => {
+      if (!aErr && approved) {
         return res.status(200).json({
           success: true,
-          status: match.status,
-          doctorCode: match.doctorCode,
-          doctorName: match.doctorName,
-          requestId: match.id
+          status: "APPROVED",
+          doctorCode: approved.doctorCode,
+          doctorName: approved.doctorName,
+          requestId: approved.id
         });
       }
-    }
-    // Fallback: If ANY request has been approved by the attending doctor, return approved link
-    const approved = all.find(r => r.status === "APPROVED");
-    if (approved) {
-      return res.status(200).json({
-        success: true,
-        status: "APPROVED",
-        doctorCode: approved.doctorCode,
-        doctorName: approved.doctorName,
-        requestId: approved.id
-      });
-    }
-    // Fallback: If any request is pending
-    const pending = all.find(r => r.status === "PENDING_APPROVAL");
-    if (pending) {
-      return res.status(200).json({
-        success: true,
-        status: "PENDING_APPROVAL",
-        doctorCode: pending.doctorCode,
-        doctorName: pending.doctorName,
-        requestId: pending.id
-      });
-    }
-  }
 
-  return res.status(200).json({ success: true, status: "NONE" });
+      // Check if there is ANY pending request in DB
+      db.get("SELECT * FROM patient_connection_requests WHERE status = 'PENDING_APPROVAL' ORDER BY rowid DESC LIMIT 1", [], (pErr, pending) => {
+        if (!pErr && pending) {
+          return res.status(200).json({
+            success: true,
+            status: "PENDING_APPROVAL",
+            doctorCode: pending.doctorCode,
+            doctorName: pending.doctorName,
+            requestId: pending.id
+          });
+        }
+
+        return res.status(200).json({ success: true, status: "NONE" });
+      });
+    });
+  });
 });
 
 // 4. POST schedule/request appointment (Option 1: connected doctor, Option 2: new doctor via code)
