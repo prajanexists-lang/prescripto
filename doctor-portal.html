@@ -231,10 +231,12 @@
           </p>
         </div>
 
-        <!-- Search Bar -->
-        <div class="relative w-full md:w-72 shrink-0">
-          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-          <input type="text" id="patientSearchInput" oninput="filterPatientsList()" placeholder="Search by name, ABHA or diagnosis..." class="w-full pl-9 pr-4 py-2 rounded-xl text-xs border border-slate-300 dark:border-[#164d41] bg-slate-50 dark:bg-[#061915] text-slate-900 dark:text-white focus:outline-none focus:border-teal-500">
+        <!-- Quick Action Buttons -->
+        <div class="flex items-center space-x-2">
+          <button onclick="fetchDeskData()" class="px-3 py-2 rounded-xl border border-slate-200 dark:border-[#17433c] text-slate-600 dark:text-teal-200 hover:bg-slate-100 dark:hover:bg-[#0b2420] text-xs font-bold flex items-center space-x-1.5 transition-colors cursor-pointer" title="Refresh all data">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Refresh</span>
+          </button>
         </div>
       </div>
 
@@ -244,13 +246,13 @@
           <div class="text-[11px] font-bold text-slate-500 dark:text-teal-200/80">Active Patients</div>
           <div id="statTotalPatients" class="text-2xl font-bold text-slate-900 dark:text-white mt-1">0</div>
         </div>
-        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c]">
-          <div class="text-[11px] font-bold text-slate-500 dark:text-teal-200/80">Pending Requests</div>
+        <div class="p-3.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/30">
+          <div class="text-[11px] font-bold text-amber-800 dark:text-amber-300">Pending Link Requests</div>
           <div id="statPendingRequests" class="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">0</div>
         </div>
-        <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c]">
-          <div class="text-[11px] font-bold text-slate-500 dark:text-teal-200/80">High Risk / Alert</div>
-          <div id="statHighRisk" class="text-2xl font-bold text-rose-600 dark:text-rose-400 mt-1">0</div>
+        <div class="p-3.5 rounded-2xl bg-teal-50/60 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-500/30">
+          <div class="text-[11px] font-bold text-teal-800 dark:text-teal-300">Pending Rx Reviews</div>
+          <div id="statPendingPrescriptions" class="text-2xl font-bold text-teal-600 dark:text-teal-400 mt-1">0</div>
         </div>
         <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c]">
           <div class="text-[11px] font-bold text-slate-500 dark:text-teal-200/80">Clinical Desk</div>
@@ -262,8 +264,54 @@
       </div>
     </div>
 
-    <!-- PATIENT ROSTER SECTION -->
-    <div class="space-y-4">
+    <!-- WORKSPACE TABS (Prescriptions Desk & Patient Directory) -->
+    <div class="flex items-center space-x-2 border-b border-slate-200 dark:border-[#133d36] pb-3">
+      <button onclick="switchTab('prescriptions')" id="tab-btn-prescriptions" class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-[#205b51]">
+        <i data-lucide="file-check-2" class="w-4 h-4 text-teal-500"></i>
+        <span>Prescription Verification Desk</span>
+        <span id="tabBadgeRxPending" class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-900">0</span>
+      </button>
+      <button onclick="switchTab('patients')" id="tab-btn-patients" class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white">
+        <i data-lucide="users" class="w-4 h-4 text-teal-500"></i>
+        <span>Patient Directory & Jackets</span>
+        <span id="tabBadgePatients" class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-[#0a231f] text-slate-700 dark:text-teal-300">0</span>
+      </button>
+    </div>
+
+    <!-- ================= TAB 1: PRESCRIPTION VERIFICATION & CLINICAL AUDIT DESK ================= -->
+    <div id="tab-content-prescriptions" class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900 dark:text-white font-heading flex items-center space-x-2">
+            <i data-lucide="clipboard-check" class="w-5 h-5 text-teal-500"></i>
+            <span>Scanned Prescriptions — Clinical Audit & Sign-Off</span>
+          </h2>
+          <p class="text-xs text-slate-500 dark:text-[#8ea7a3] mt-0.5">
+            Real-time feed of patient-scanned prescription slips. Review extracted medications and click [Approve & Sign-Off] to confirm.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Bulk Approve All Prescriptions Button -->
+          <button onclick="approveAllPrescriptions()" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold shadow-md flex items-center space-x-1.5 transition-all cursor-pointer">
+            <i data-lucide="check-check" class="w-4 h-4"></i>
+            <span>⚡ Approve All Prescriptions</span>
+          </button>
+          <!-- Quick Sample Prescription Generator -->
+          <button onclick="simulateSamplePrescriptionScan()" class="px-3 py-2 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-500/30 text-xs font-bold hover:bg-teal-100 transition-colors cursor-pointer" title="Simulate a new patient prescription scan">
+            <span>⚡ Send Test Rx</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Container of Prescription Review Cards -->
+      <div id="prescriptionsCardsContainer" class="space-y-4">
+        <!-- Populated via JS -->
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: PATIENT DIRECTORY & HEALTH JACKETS ================= -->
+    <div id="tab-content-patients" class="hidden space-y-4">
       <div class="flex items-center justify-between">
         <h2 class="text-lg font-bold text-slate-900 dark:text-white font-heading flex items-center space-x-2">
           <i data-lucide="users" class="w-5 h-5 text-teal-500"></i>
@@ -271,10 +319,7 @@
         </h2>
         <div class="flex items-center space-x-2">
           <button onclick="simulateIncomingPatientRequest()" class="px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 border border-teal-500/30 text-xs font-bold hover:bg-teal-100 transition-colors cursor-pointer" title="Send a test patient connection request">
-            <span>⚡ Send Test Request</span>
-          </button>
-          <button onclick="fetchPatients(); fetchConnectionRequests();" class="p-1.5 rounded-xl border border-slate-200 dark:border-[#17433c] text-slate-600 dark:text-teal-200 hover:bg-slate-100 dark:hover:bg-[#0b2420] transition-colors cursor-pointer" title="Refresh">
-            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <span>⚡ Send Test Patient</span>
           </button>
         </div>
       </div>
@@ -286,6 +331,21 @@
     </div>
 
   </main>
+
+  <!-- ================= MODAL: IMAGE PREVIEW ZOOM ================= -->
+  <div id="image-zoom-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative max-w-2xl w-full bg-white dark:bg-[#0a231f] rounded-3xl overflow-hidden shadow-2xl border border-slate-300 dark:border-[#17433c]">
+      <div class="p-4 border-b border-slate-200 dark:border-[#17433c] flex items-center justify-between">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white font-heading">Original Uploaded Prescription Slip</h3>
+        <button onclick="closeImageZoomModal()" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl transition-colors cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-4 flex items-center justify-center max-h-[75vh] overflow-auto bg-slate-900">
+        <img id="modal-zoom-img" src="" alt="Prescription Full View" class="max-w-full max-h-[70vh] object-contain rounded-xl shadow-md">
+      </div>
+    </div>
+  </div>
 
   <!-- ================= JAVASCRIPT LOGIC ================= -->
   <script>
@@ -302,6 +362,8 @@
     let currentDoctorProfile = DOCTOR_REGISTRY['DOC-4829'];
     let doctorPatients = [];
     let connectionRequestsList = [];
+    let prescriptionsList = [];
+    let activeTab = 'prescriptions';
 
     // ================= PASSWORD AUTHENTICATION GATE =================
     function checkDoctorAuth() {
@@ -316,8 +378,7 @@
         mainView.classList.remove('hidden');
         lockBtn.classList.remove('hidden');
         docSwitcher.classList.remove('hidden');
-        fetchPatients();
-        fetchConnectionRequests();
+        fetchDeskData();
       } else {
         authView.classList.remove('hidden');
         mainView.classList.add('hidden');
@@ -387,6 +448,7 @@
         if (titleDisp) titleDisp.innerText = `🩺 ${doc.name}'s Clinical Panel`;
 
         renderConnectionRequests();
+        renderPrescriptions();
         fetchPatients();
       }
     }
@@ -394,6 +456,34 @@
     function copyActiveDoctorCode() {
       navigator.clipboard.writeText(currentDoctorProfile.code);
       showToast(`Doctor Code ${currentDoctorProfile.code} copied to clipboard! Share with patient to connect.`);
+    }
+
+    // ================= TABS NAVIGATION =================
+    function switchTab(tab) {
+      activeTab = tab;
+      const btnRx = document.getElementById('tab-btn-prescriptions');
+      const btnPat = document.getElementById('tab-btn-patients');
+      const contentRx = document.getElementById('tab-content-prescriptions');
+      const contentPat = document.getElementById('tab-content-patients');
+
+      if (tab === 'prescriptions') {
+        btnRx.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-[#205b51]";
+        btnPat.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white";
+        contentRx.classList.remove('hidden');
+        contentPat.classList.add('hidden');
+      } else {
+        btnPat.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-[#205b51]";
+        btnRx.className = "px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center space-x-2 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white";
+        contentPat.classList.remove('hidden');
+        contentRx.classList.add('hidden');
+      }
+      lucide.createIcons();
+    }
+
+    function fetchDeskData() {
+      fetchConnectionRequests();
+      fetchPrescriptions();
+      fetchPatients();
     }
 
     // ================= PATIENT LINK REQUESTS & APPROVAL =================
@@ -502,33 +592,261 @@
       }
     }
 
-    async function simulateIncomingPatientRequest() {
-      const activeCode = currentDoctorProfile.code || 'DOC-4829';
-      showToast(`Sending sample link request for ${activeCode}...`);
+    // ================= PRESCRIPTION VERIFICATION & CLINICAL AUDIT DESK =================
+    async function fetchPrescriptions() {
       try {
-        const res = await fetch('/api/patients/request-doctor-connection', {
+        const res = await fetch('/api/prescriptions');
+        const data = await res.json();
+        prescriptionsList = data.prescriptions || [];
+        renderPrescriptions();
+      } catch (err) {
+        console.warn("Prescriptions fetch error:", err);
+      }
+    }
+
+    function renderPrescriptions() {
+      const container = document.getElementById('prescriptionsCardsContainer');
+      const statRx = document.getElementById('statPendingPrescriptions');
+      const tabBadgeRx = document.getElementById('tabBadgeRxPending');
+      if (!container) return;
+
+      const pending = prescriptionsList.filter(p => p.status === 'PENDING_APPROVAL');
+      if (statRx) statRx.innerText = pending.length;
+      if (tabBadgeRx) {
+        tabBadgeRx.innerText = `${pending.length} PENDING`;
+        tabBadgeRx.className = pending.length > 0
+          ? "ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-slate-900"
+          : "ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-[#0a231f] text-slate-600 dark:text-teal-300";
+      }
+
+      if (prescriptionsList.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white dark:bg-[#0a231f] border-2 border-dashed border-slate-200 dark:border-[#133d36] rounded-3xl p-10 sm:p-14 text-center space-y-4">
+            <div class="w-16 h-16 rounded-3xl bg-teal-500/10 text-teal-600 dark:text-teal-400 mx-auto flex items-center justify-center text-3xl">
+              📑
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-base font-bold text-slate-900 dark:text-white font-heading">No Scanned Prescriptions Awaiting Review</h3>
+              <p class="text-xs text-slate-500 dark:text-[#8ea7a3] max-w-md mx-auto leading-relaxed">
+                When a patient scans their prescription picture on the Patient Portal, it appears here in real time for clinical audit, dosage verification, and generic substitution sign-off.
+              </p>
+            </div>
+            <button onclick="simulateSamplePrescriptionScan()" class="px-4 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold inline-flex items-center space-x-1.5 shadow-md transition-all cursor-pointer">
+              <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+              <span>⚡ Send Sample Prescription Scan (+91 9999999999)</span>
+            </button>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = prescriptionsList.map(rx => {
+        const isPending = rx.status === 'PENDING_APPROVAL';
+        const isApproved = rx.status === 'APPROVED';
+
+        let statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center space-x-1"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>Awaiting Review</span></span>`;
+        if (isApproved) {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center space-x-1"><span>✅ Approved</span></span>`;
+        } else if (rx.status === 'REJECTED') {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30 flex items-center space-x-1"><span>⚠️ Clarification Requested</span></span>`;
+        }
+
+        const meds = Array.isArray(rx.medicines) ? rx.medicines : [];
+        const hasImg = rx.uploadedImage && rx.uploadedImage.length > 50;
+
+        return `
+          <div class="bg-white dark:bg-[#0a231f] border border-slate-200 dark:border-[#133d36] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xs">
+            <!-- Header Row -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-[#17433c]">
+              <div>
+                <div class="flex items-center space-x-2">
+                  <span class="font-mono font-bold text-xs px-2.5 py-0.5 rounded-lg bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/20">${rx.id}</span>
+                  <h3 class="text-base font-bold text-slate-900 dark:text-white font-heading">${escapeHtml(rx.patientName || 'Patient')}</h3>
+                  <span class="text-xs text-slate-400">📱 ${escapeHtml(rx.patientPhone || '')}</span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-teal-200/70 mt-1">
+                  Submitted at: <strong>${rx.timestamp || 'Today'}</strong> • Specialty: <strong>${escapeHtml(rx.doctorSpecialty || 'General Medicine')}</strong>
+                </p>
+              </div>
+              <div class="flex items-center space-x-2">
+                ${statusBadge}
+              </div>
+            </div>
+
+            <!-- Main Content Grid: Image Preview + Extracted Medications -->
+            <div class="grid grid-cols-1 ${hasImg ? 'md:grid-cols-4' : ''} gap-4">
+              ${hasImg ? `
+                <div class="md:col-span-1 space-y-1">
+                  <label class="block text-[11px] font-bold text-slate-600 dark:text-teal-300">Prescription Slip:</label>
+                  <div onclick="openImageZoomModal('${escapeHtml(rx.uploadedImage)}')" class="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-[#17433c] bg-slate-900 aspect-[4/3] flex items-center justify-center cursor-pointer group shadow-2xs">
+                    <img src="${escapeHtml(rx.uploadedImage)}" alt="Rx Slip" class="w-full h-full object-cover group-hover:scale-105 transition-all">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all text-white text-xs font-bold space-x-1">
+                      <i data-lucide="zoom-in" class="w-4 h-4"></i>
+                      <span>Zoom</span>
+                    </div>
+                  </div>
+                </div>
+              ` : ''}
+
+              <!-- Medications List -->
+              <div class="${hasImg ? 'md:col-span-3' : ''} space-y-2">
+                <div class="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-teal-200">
+                  <span>Extracted Medications (${meds.length})</span>
+                  <span class="text-[11px] text-teal-600 dark:text-teal-400">OCR AI Verified Formulary</span>
+                </div>
+
+                <div class="space-y-2">
+                  ${meds.map(m => `
+                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-100 dark:border-[#17433c] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div>
+                        <div class="flex items-center space-x-2">
+                          <strong class="text-sm font-bold text-slate-900 dark:text-white">${escapeHtml(m.brandName || 'Medicine')}</strong>
+                          <span class="font-mono text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">${escapeHtml(m.frequency || '1-0-1')}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-teal-200/70 mt-0.5">
+                          Generic Salt: <strong class="text-slate-700 dark:text-teal-100">${escapeHtml(m.genericSalt || '')}</strong>
+                        </p>
+                      </div>
+                      <div class="text-right shrink-0">
+                        <span class="text-[11px] font-semibold text-slate-600 dark:text-teal-200/80">${escapeHtml(m.timing || 'Daily')}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Doctor Audit Action Bar -->
+            <div class="pt-3 border-t border-slate-100 dark:border-[#17433c] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="flex-1">
+                <input type="text" id="notes-rx-${rx.id}" placeholder="Doctor sign-off note (e.g. Approved for Jan Aushadhi generic dispensation)" value="${escapeHtml(rx.doctorNotes || '')}" class="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-300 dark:border-[#164d41] bg-slate-50 dark:bg-[#061915] text-slate-900 dark:text-white focus:outline-none focus:border-teal-500">
+              </div>
+
+              <div class="flex items-center space-x-2 shrink-0">
+                ${isPending ? `
+                  <button onclick="reviewPrescription('${rx.id}', 'APPROVED')" class="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold flex items-center space-x-1.5 shadow-md transition-all cursor-pointer">
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                    <span>Approve & Sign-Off</span>
+                  </button>
+                  <button onclick="reviewPrescription('${rx.id}', 'REJECTED')" class="px-3 py-2 rounded-xl border border-rose-300 dark:border-rose-800 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center space-x-1 transition-all cursor-pointer">
+                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                    <span>Request Retake</span>
+                  </button>
+                ` : `
+                  <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    <span>Reviewed by ${escapeHtml(rx.reviewedBy || 'Doctor')} at ${escapeHtml(rx.reviewedAt || 'Today')}</span>
+                  </div>
+                `}
+              </div>
+            </div>
+
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    async function reviewPrescription(rxId, status) {
+      const noteInput = document.getElementById(`notes-rx-${rxId}`);
+      const notes = noteInput ? noteInput.value : '';
+      showToast(`Submitting prescription review (${status})...`);
+
+      try {
+        const res = await fetch(`/api/prescriptions/${rxId}/review`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: status,
+            doctorNotes: notes || (status === 'APPROVED' ? 'Prescription verified and approved for generic dispensation under PM-ABDM protocols.' : 'Handwriting unclear, please retake prescription picture.'),
+            reviewedBy: currentDoctorProfile.name
+          })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          if (status === 'APPROVED') {
+            showToast(`✅ Prescription ${rxId} approved! Patient informed instantly.`);
+            triggerConfetti();
+          } else {
+            showToast(`⚠️ Prescription ${rxId} marked for re-scan.`);
+          }
+          fetchPrescriptions();
+        } else {
+          showToast(data.error || 'Failed to review prescription', true);
+        }
+      } catch(e) {
+        showToast('Network error reviewing prescription', true);
+      }
+    }
+
+    async function approveAllPrescriptions() {
+      showToast('Approving all pending scanned prescriptions in bulk...');
+      try {
+        const res = await fetch('/api/prescriptions/approve-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doctorName: currentDoctorProfile.name })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`⚡ Approved ${data.count} prescription(s) successfully! Patients notified.`);
+          triggerConfetti();
+          fetchPrescriptions();
+        } else {
+          showToast(data.error || 'Failed to approve all prescriptions', true);
+        }
+      } catch(e) {
+        showToast('Network error approving all prescriptions', true);
+      }
+    }
+
+    async function simulateSamplePrescriptionScan() {
+      showToast('Submitting test prescription from Rohan Verma...');
+      try {
+        const res = await fetch('/api/prescriptions/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            doctorCode: activeCode,
-            name: 'Rohan Verma',
-            phone: '9999999999',
-            age: 32,
-            gender: 'Male',
-            village: 'Sonpur Ward 2',
-            abhaId: '91-4829-1039-4821'
+            patientName: 'Rohan Verma',
+            patientPhone: '+91 99999-99999',
+            doctorSpecialty: currentDoctorProfile.specialty,
+            doctorName: currentDoctorProfile.name,
+            uploadedImage: '',
+            medicines: [
+              { brandName: "Tab. Sizodon Plus", genericSalt: "Risperidone (2mg) + Trihexyphenidyl (2mg)", frequency: "1-0-1 (Morning & Night)", timing: "morning_night", brandedPrice: 115, genericPrice: 24 },
+              { brandName: "Tab. Qutipin 200mg", genericSalt: "Quetiapine Fumarate IP (200mg)", frequency: "0-0-1 (Night at Bedtime)", timing: "night", brandedPrice: 185, genericPrice: 38 },
+              { brandName: "Tab. Ativan 2mg", genericSalt: "Lorazepam IP (2mg)", frequency: "0-0-1 (Night)", timing: "night", brandedPrice: 92, genericPrice: 18 }
+            ],
+            notes: 'Patient scanned prescription via PrescriptoPlus Vision AI. Awaiting doctor approval.'
           })
         });
         const data = await res.json();
         if (data.success) {
-          showToast(`Sample link request from Rohan Verma received for ${activeCode}! Click [Approve Link] above.`);
-          fetchConnectionRequests();
+          showToast(`✅ New prescription ${data.prescriptionId} received! Review below.`);
+          fetchPrescriptions();
         } else {
-          showToast(data.error || 'Failed to send sample request', true);
+          showToast(data.error || 'Failed to send sample prescription', true);
         }
-      } catch (e) {
-        showToast('Network error sending sample request', true);
+      } catch(e) {
+        showToast('Network error sending sample prescription', true);
       }
+    }
+
+    function openImageZoomModal(imgSrc) {
+      const modal = document.getElementById('image-zoom-modal');
+      const img = document.getElementById('modal-zoom-img');
+      if (modal && img) {
+        img.src = imgSrc;
+        modal.classList.remove('hidden');
+      }
+    }
+
+    function closeImageZoomModal() {
+      const modal = document.getElementById('image-zoom-modal');
+      if (modal) modal.classList.add('hidden');
     }
 
     // ================= PATIENT ROSTER =================
@@ -539,13 +857,10 @@
         doctorPatients = data.patients || [];
 
         const statTotal = document.getElementById('statTotalPatients');
-        const statHighRisk = document.getElementById('statHighRisk');
+        const tabBadge = document.getElementById('tabBadgePatients');
 
         if (statTotal) statTotal.innerText = doctorPatients.length;
-        if (statHighRisk) {
-          const highRiskCount = doctorPatients.filter(p => p.status === 'HIGH_RISK').length;
-          statHighRisk.innerText = highRiskCount;
-        }
+        if (tabBadge) tabBadge.innerText = `${doctorPatients.length} PATIENTS`;
 
         renderPatients(doctorPatients);
       } catch (err) {
@@ -655,21 +970,6 @@
       }).join('');
 
       lucide.createIcons();
-    }
-
-    function filterPatientsList() {
-      const q = (document.getElementById('patientSearchInput')?.value || '').toLowerCase();
-      if (!q) {
-        renderPatients(doctorPatients);
-        return;
-      }
-      const filtered = doctorPatients.filter(p => 
-        (p.name || '').toLowerCase().includes(q) ||
-        (p.phone || '').toLowerCase().includes(q) ||
-        (p.abhaId || '').toLowerCase().includes(q) ||
-        (p.diagnosis || '').toLowerCase().includes(q)
-      );
-      renderPatients(filtered);
     }
 
     async function saveDoctorNotes(patientId) {
@@ -787,12 +1087,13 @@
       initTheme();
       checkDoctorAuth();
 
-      // Poll requests every 3 seconds
+      // Poll connection requests and scanned prescriptions every 2.5 seconds
       setInterval(() => {
         if (sessionStorage.getItem('prescripto_doctor_auth') === 'true') {
           fetchConnectionRequests();
+          fetchPrescriptions();
         }
-      }, 3000);
+      }, 2500);
     });
   </script>
 </body>

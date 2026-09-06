@@ -1066,6 +1066,27 @@ app.patch("/api/prescriptions/:id/review", (req, res) => {
   );
 });
 
+// 5. POST /api/prescriptions/approve-all (Doctor approves all pending scanned prescriptions)
+app.post("/api/prescriptions/approve-all", (req, res) => {
+  const { doctorName } = req.body || {};
+  const doc = doctorName || "Dr. Prajan Radhakrishnan, MD";
+  const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  db.run(
+    `UPDATE prescriptions
+     SET status = 'APPROVED',
+         reviewedAt = ?,
+         reviewedBy = ?,
+         doctorNotes = 'Prescription approved by attending clinician. Generic dispensary and dosages unlocked.'
+     WHERE status = 'PENDING_APPROVAL'`,
+    [now, doc],
+    function (err) {
+      if (err) return res.status(500).json({ success: false, error: err.message });
+      console.log(`[Prescriptions] Approved ${this.changes} prescriptions in bulk by ${doc}.`);
+      return res.status(200).json({ success: true, count: this.changes });
+    }
+  );
+});
+
 // ================= DOCTOR PATIENT DIRECTORY & CLOSED LOOP CARE API =================
 
 // 1. GET all assigned patients for Dr. Prajan Radhakrishnan

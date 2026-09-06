@@ -3011,11 +3011,16 @@
         try {
           renderRxReviewStatus('SUBMITTING');
 
+          const pName = (currentPatient && currentPatient.name) || (window.currentPatientProfile && window.currentPatientProfile.name) || 'Rohan Verma';
+          const pPhone = (currentPatient && currentPatient.phone) || (window.currentPatientProfile && window.currentPatientProfile.phone) || '+91 9999999999';
+          const dName = (currentPatient && currentPatient.doctorName) || rx.doctor || 'Dr. Prajan Radhakrishnan, MD';
+          const dSpecialty = (currentPatient && currentPatient.specialty) || rx.category || 'General Medicine';
+
           const payload = {
-            patientName: (window.currentPatientProfile && window.currentPatientProfile.name) || 'Anita Devi',
-            patientPhone: (window.currentPatientProfile && window.currentPatientProfile.phone) || '+91 98765-43210',
-            doctorSpecialty: rx.category || 'General Medicine',
-            doctorName: rx.doctor || 'Treating Physician',
+            patientName: pName,
+            patientPhone: pPhone,
+            doctorSpecialty: dSpecialty,
+            doctorName: dName,
             uploadedImage: imageSrc || '',
             medicines: rx.medicines || [],
             notes: 'Prescription scanned by patient. Please review and approve medications.'
