@@ -1036,7 +1036,7 @@
   <header class="header-bar">
     <div class="header-titles">
       <div style="display: flex; align-items: center; gap: 12px;">
-        <div style="width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(135deg, #0f766e, #10b981); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); shrink-0;">
+        <div style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #0f766e, #10b981); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); shrink-0;">
           +
         </div>
         <div>
@@ -1045,7 +1045,7 @@
             <span class="header-badge-tag">Doctor Clinical Command Desk</span>
           </h1>
           <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--text-muted);">
-            Ayushman Bharat Digital Health (ABDM) • PHC Live Triage & Telephony Operations
+            Ayushman Bharat Digital Health (ABDM) • Physician Approval & Closed-Loop Telehealth
           </p>
         </div>
       </div>
@@ -1055,19 +1055,29 @@
         <span class="pulse-dot"></span>
         <span id="syncText">Live Sync (2.5s)</span>
       </div>
-      <div style="font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 6px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-border); display: inline-flex; align-items: center; gap: 6px;">
+
+      <!-- Doctor Profile Switcher (Supports 5+ clinical test codes) -->
+      <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 8px; background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-border); font-size: 12px; font-weight: 700;">
         <span>🩺</span>
-        <span id="docBadgeName">Dr. Prajan Radhakrishnan, MD</span>
-        <span style="opacity: 0.7; font-size: 11px;">(NMC-48291)</span>
-        <button onclick="changeDoctorNamePrompt()" title="Click to edit Doctor Name" style="background:none; border:none; cursor:pointer; padding: 0 2px; font-size: 12px; margin-left: 2px;">✏️</button>
+        <select id="activeDoctorSelect" onchange="handleDoctorSwitch(this.value)" style="border: none; background: transparent; font-weight: 800; font-size: 12px; color: var(--primary); outline: none; cursor: pointer;">
+          <option value="DOC-4829" selected>Dr. Prajan Radhakrishnan, MD (DOC-4829)</option>
+          <option value="DOC-3910">Dr. Anjali Nair, MD (DOC-3910)</option>
+          <option value="DOC-5201">Dr. Vikram Sethi, MS (DOC-5201)</option>
+          <option value="DOC-1048">Dr. Rajesh Sharma, MD (DOC-1048)</option>
+          <option value="DOC-7732">Dr. Kavita Deshmukh, MD (DOC-7732)</option>
+          <option value="DOC-6014">Dr. Amitav Ghosh, DM (DOC-6014)</option>
+        </select>
       </div>
-      <div style="font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 6px; background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; display: inline-flex; align-items: center; gap: 6px;" title="Share this unique code with patients to link them directly into your repository">
-        <span>🔑 Patient Link Code:</span>
-        <strong style="font-family: monospace; letter-spacing: 0.5px; font-size: 13px; color: #047857;">DOC-4829</strong>
-        <button onclick="navigator.clipboard.writeText('DOC-4829'); showToast('Doctor Code DOC-4829 copied to clipboard! Share with patients to auto-link.','success')" style="background: #10b981; color: white; border: none; border-radius: 4px; padding: 2px 7px; font-size: 11px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="Copy Doctor Code">
+
+      <!-- Unique Patient Link Code Card with 1-Click Copy -->
+      <div style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 8px; background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; display: inline-flex; align-items: center; gap: 6px;" title="Share this unique code with patients to link them directly into your repository">
+        <span>🔑 Link Code:</span>
+        <strong id="activeDoctorCodeChip" style="font-family: monospace; letter-spacing: 0.5px; font-size: 13px; color: #047857;">DOC-4829</strong>
+        <button onclick="copyActiveDoctorCode()" style="background: #10b981; color: white; border: none; border-radius: 4px; padding: 2px 7px; font-size: 11px; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 3px;" title="Copy Doctor Code">
           📋 <span>Copy</span>
         </button>
       </div>
+
       <a href="/" target="_blank" style="text-decoration: none;">
         <button class="btn-outline" style="color: var(--primary); border-color: var(--primary-border); font-weight: 700; background: var(--primary-light);">
           👤 Patient Portal →
@@ -1076,8 +1086,8 @@
       <button class="btn-outline" onclick="openDoctorWhatsAppModal()" style="color: #047857; border-color: #6ee7b7; font-weight: 700; background: #ecfdf5;" title="Send clinical dosage reminders and dietary alerts to patients via WhatsApp">
         💬 WhatsApp Reminders
       </button>
-      <button class="btn-outline" onclick="toggleDoctorTheme()" id="docThemeBtn" title="Toggle Prescripto Dark/Light Mode">🌓 Dark Mode</button>
-      <button class="btn-outline" onclick="fetchDeskData()" title="Refresh now">🔄 Refresh Worklist</button>
+      <button class="btn-outline" onclick="toggleDoctorTheme()" id="docThemeBtn" title="Toggle Dark/Light Mode">🌓 Theme</button>
+      <button class="btn-outline" onclick="fetchDeskData()" title="Refresh worklist">🔄 Refresh</button>
     </div>
   </header>
 
@@ -1504,37 +1514,42 @@
     <div class="card" style="margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
       <div>
         <h2 style="margin: 0; font-size: 16px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
-          <span>🩺 Dr. Prajan Radhakrishnan's Clinical Patient Panel</span>
+          <span id="panelDoctorNameTitle">🩺 Dr. Prajan Radhakrishnan's Clinical Patient Panel</span>
           <span class="badge" style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-border); font-size: 11px;">
             ABDM Standard • Closed-Loop Telehealth
           </span>
           <span class="badge" style="background: #ecfdf5; color: #065f46; border: 1px solid #6ee7b7; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-            🔑 Link Code: <strong style="font-family: monospace;">DOC-4829</strong>
+            🔑 Active Link Code: <strong id="panelDoctorCodeDisplay" style="font-family: monospace;">DOC-4829</strong>
           </span>
         </h2>
         <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted);">
           Comprehensive patient health jackets, medication reconciliation, real-time clinical notes, and 1-click WhatsApp/Teleconsult actions.
         </p>
       </div>
-      <div style="display: flex; gap: 8px;">
-        <input type="text" id="patientSearchInput" oninput="filterPatientsList()" placeholder="🔍 Filter patient by name, ABHA or diagnosis..." class="form-control" style="width: 280px; font-size: 12px; padding: 6px 12px;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        <input type="text" id="patientSearchInput" oninput="filterPatientsList()" placeholder="🔍 Search patient by name, ABHA or diagnosis..." class="form-control" style="width: 260px; font-size: 12px; padding: 6px 12px;">
         <button class="btn-outline" onclick="fetchPatients()" style="font-size: 12px; padding: 6px 14px;">🔄 Refresh Panel</button>
       </div>
     </div>
 
-    <!-- Pending Patient Connection Requests Card -->
-    <div id="connectionRequestsSection" class="card" style="margin-bottom: 18px; border: 1px solid #f59e0b; background: #fffbeb; display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #fde68a; padding-bottom: 8px;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 20px;">⏳</span>
+    <!-- Pending Patient Connection Requests Card (With 1-Click Approve All) -->
+    <div id="connectionRequestsSection" class="card" style="margin-bottom: 18px; border: 1px solid #f59e0b; background: #fffbeb; display: none; border-radius: 12px; padding: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #fde68a; padding-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 22px;">⏳</span>
           <div>
             <strong style="color: #92400e; font-size: 14px;">Patient Link Requests (Awaiting Doctor Approval)</strong>
             <p style="margin: 2px 0 0 0; font-size: 11px; color: #b45309;">
-              Patients have requested to connect with your doctor code (<strong style="font-family: monospace;">DOC-4829</strong>). Click "Approve Link" to finalize connection and unlock prescription verification for them.
+              Patients have requested to connect via your unique code (<strong id="reqSectionDocCode" style="font-family: monospace;">DOC-4829</strong>). Approve individually or approve all at once to unlock verification for them.
             </p>
           </div>
         </div>
-        <span class="badge" id="connReqBadge" style="background: #f59e0b; color: white; font-weight: 700; font-size: 11px;">0 PENDING</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="badge" id="connReqBadge" style="background: #f59e0b; color: white; font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 12px;">0 PENDING</span>
+          <button onclick="approveAllPatientConnections()" class="btn-green" style="font-size: 12px; padding: 6px 15px; font-weight: 800; background: #059669; border: 1px solid #047857; box-shadow: 0 2px 6px rgba(5,150,105,0.3); border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+            <span>⚡ Approve All Requests</span>
+          </button>
+        </div>
       </div>
       <div id="connReqCardsContainer" style="display: grid; gap: 10px;">
         <!-- Populated dynamically via JS -->
@@ -3253,6 +3268,44 @@
     }
 
     // ================= DOCTOR PATIENT LINK REQUESTS & APPROVAL =================
+    let currentDoctorProfile = {
+      code: 'DOC-4829',
+      name: 'Dr. Prajan Radhakrishnan, MD',
+      specialty: 'General Medicine & Clinical Telehealth'
+    };
+
+    const DOCTOR_REGISTRY = {
+      'DOC-4829': { code: 'DOC-4829', name: 'Dr. Prajan Radhakrishnan, MD', specialty: 'General Medicine & Clinical Telehealth' },
+      'DOC-3910': { code: 'DOC-3910', name: 'Dr. Anjali Nair, MD', specialty: 'Obstetrics & Maternal Care' },
+      'DOC-5201': { code: 'DOC-5201', name: 'Dr. Vikram Sethi, MS', specialty: 'Orthopedics & Spine Care' },
+      'DOC-1048': { code: 'DOC-1048', name: 'Dr. Rajesh Sharma, MD', specialty: 'Pulmonology & Critical Care' },
+      'DOC-7732': { code: 'DOC-7732', name: 'Dr. Kavita Deshmukh, MD', specialty: 'Cardiology & Preventive Heart Care' },
+      'DOC-6014': { code: 'DOC-6014', name: 'Dr. Amitav Ghosh, DM', specialty: 'Neurology & Neuro-Psychiatry' }
+    };
+
+    function handleDoctorSwitch(code) {
+      const doc = DOCTOR_REGISTRY[code];
+      if (doc) {
+        currentDoctorProfile = doc;
+        const chip = document.getElementById('activeDoctorCodeChip');
+        if (chip) chip.innerText = doc.code;
+        const panelDisp = document.getElementById('panelDoctorCodeDisplay');
+        if (panelDisp) panelDisp.innerText = doc.code;
+        const reqDisp = document.getElementById('reqSectionDocCode');
+        if (reqDisp) reqDisp.innerText = doc.code;
+        const titleDisp = document.getElementById('panelDoctorNameTitle');
+        if (titleDisp) titleDisp.innerText = `🩺 ${doc.name}'s Clinical Patient Panel`;
+        showToast(`Switched active desk to ${doc.name} (${doc.code})`, 'info');
+        renderConnectionRequests();
+        fetchPatients();
+      }
+    }
+
+    function copyActiveDoctorCode() {
+      navigator.clipboard.writeText(currentDoctorProfile.code);
+      showToast(`Doctor Code ${currentDoctorProfile.code} copied to clipboard! Share with patient to connect.`, 'success');
+    }
+
     let connectionRequestsList = [];
 
     async function fetchConnectionRequests() {
@@ -3274,7 +3327,10 @@
       const badge = document.getElementById('connReqBadge');
       const tabBadge = document.getElementById('badgeConnReqCount');
 
+      const activeCode = currentDoctorProfile.code;
       const pending = connectionRequestsList.filter(r => r.status === 'PENDING_APPROVAL');
+      const doctorPending = pending.filter(r => (r.doctorCode || '').toUpperCase() === activeCode.toUpperCase());
+      const displayList = doctorPending.length > 0 ? doctorPending : pending;
 
       if (tabBadge) {
         if (pending.length > 0) {
@@ -3286,25 +3342,27 @@
       }
 
       if (section && container) {
-        if (pending.length > 0) {
+        if (displayList.length > 0) {
           section.style.display = 'block';
-          if (badge) badge.innerText = `${pending.length} PENDING`;
-          container.innerHTML = pending.map(r => `
-            <div style="background: white; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          if (badge) badge.innerText = `${displayList.length} PENDING`;
+          container.innerHTML = displayList.map(r => `
+            <div style="background: white; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
               <div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <strong style="font-size: 14px; color: #1e293b;">${escapeHtml(r.patientName || 'Patient')}</strong>
-                  <span class="badge" style="background: #ecfdf5; color: #047857; font-family: monospace; font-size: 10px;">${escapeHtml(r.doctorCode)}</span>
+                  <strong style="font-size: 15px; color: #1e293b;">${escapeHtml(r.patientName || 'Patient')}</strong>
+                  <span class="badge" style="background: #ecfdf5; color: #047857; font-family: monospace; font-size: 11px; font-weight: 700;">${escapeHtml(r.doctorCode)}</span>
                   <span style="font-size: 11px; color: #64748b;">${r.createdAt ? r.createdAt : 'Just now'}</span>
                 </div>
-                <div style="font-size: 12px; color: #475569; margin-top: 3px;">
+                <div style="font-size: 12px; color: #475569; margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
                   <span>📞 +91 ${escapeHtml(r.patientPhone)}</span>
-                  <span style="margin: 0 6px;">•</span>
+                  <span>•</span>
+                  <span>Age: ${r.patientAge || 28}y / ${r.patientGender || 'Female'}</span>
+                  <span>•</span>
                   <span style="font-family: monospace; font-size: 11px;">ABHA: ${escapeHtml(r.patientAbha || '91-4829-1039-4821')}</span>
                 </div>
               </div>
               <div style="display: flex; gap: 8px;">
-                <button onclick="approvePatientConnection('${escapeHtml(r.patientPhone)}', '${escapeHtml(r.id)}')" class="btn-teal" style="font-size: 12px; padding: 6px 14px; font-weight: 700;">
+                <button onclick="approvePatientConnection('${escapeHtml(r.patientPhone)}', '${escapeHtml(r.id)}')" class="btn-green" style="font-size: 12px; padding: 7px 16px; font-weight: 800; cursor: pointer; border-radius: 8px;">
                   ✅ Approve Link
                 </button>
               </div>
@@ -3334,6 +3392,56 @@
         }
       } catch (e) {
         showToast('Network error approving connection', 'error');
+      }
+    }
+
+    async function approveAllPatientConnections() {
+      showToast('Approving all pending patient link requests...', 'info');
+      try {
+        const res = await fetch('/api/patients/approve-all-connections', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doctorCode: currentDoctorProfile.code })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`⚡ Approved ${data.count} patient connection(s) successfully! Prescriptions unlocked for all.`, 'success');
+          fetchConnectionRequests();
+          fetchPatients();
+        } else {
+          showToast(data.error || 'Failed to approve all requests', 'error');
+        }
+      } catch (e) {
+        showToast('Network error approving all requests', 'error');
+      }
+    }
+
+    async function simulateIncomingPatientRequest() {
+      const activeCode = currentDoctorProfile.code || 'DOC-4829';
+      showToast(`Sending sample link request for ${activeCode}...`, 'info');
+      try {
+        const res = await fetch('/api/patients/request-doctor-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doctorCode: activeCode,
+            name: 'Rohan Verma',
+            phone: '9999999999',
+            age: 32,
+            gender: 'Male',
+            village: 'Sonpur Ward 2',
+            abhaId: '91-4829-1039-4821'
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Sample link request from Rohan Verma received for ${activeCode}! Click [Approve Link] above.`, 'success');
+          fetchConnectionRequests();
+        } else {
+          showToast(data.error || 'Failed to send sample request', 'error');
+        }
+      } catch (e) {
+        showToast('Network error sending sample request', 'error');
       }
     }
 
@@ -3373,8 +3481,17 @@
 
       if (!patientsToRender || patientsToRender.length === 0) {
         container.innerHTML = `
-          <div class="card" style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
-            No patient files matching search criteria.
+          <div class="card" style="grid-column: 1/-1; text-align: center; padding: 48px 24px; color: var(--text-muted); background: var(--bg-card); border: 2px dashed var(--border); border-radius: 16px;">
+            <div style="font-size: 44px; margin-bottom: 12px;">🩺</div>
+            <h3 style="margin: 0 0 6px; font-size: 16px; color: var(--text-main); font-weight: 700;">No Linked Patients Yet</h3>
+            <p style="margin: 0 auto 16px; max-width: 440px; font-size: 12px; line-height: 1.5; color: var(--text-muted);">
+              ${currentDoctorProfile.name}'s profile is clean with no legacy patient records. When a patient submits connection code <strong style="font-family: monospace; color: var(--primary);">${currentDoctorProfile.code}</strong>, their request will appear above for approval.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 10px;">
+              <button onclick="simulateIncomingPatientRequest()" class="btn-teal" style="font-size: 12px; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-weight: 700;">
+                ⚡ Send Sample Link Request (+91 9999999999)
+              </button>
+            </div>
           </div>
         `;
         return;

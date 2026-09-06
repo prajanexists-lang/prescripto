@@ -423,117 +423,14 @@ function setupTablesAndSeed() {
       )
     `);
 
-    db.get("SELECT COUNT(*) as count FROM patients", [], (err, row) => {
-      if (!err && row && row.count === 0) {
-        console.log(" Seeding initial doctor patient roster records...");
-        const patStmt = db.prepare(`
-          INSERT INTO patients (id, name, age, gender, phone, village, abhaId, diagnosis, doctorName, assignedANM, activeRxId, compliance, status, lastVisit, doctorNotes, history)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-
-        const patSeeds = [
-          [
-            "PAT-101",
-            "Anita Devi",
-            27,
-            "Female",
-            "+91 98765-43210",
-            "Sonpur Ward 2",
-            "91-4829-1039-4821",
-            "Antenatal Care (28 Wks Gestation) / Mild Nutritional Anemia",
-            "Dr. Prajan Radhakrishnan, MD",
-            "Sunita Sharma",
-            "RX-8419",
-            "85%",
-            "IN_OBSERVATION",
-            "Yesterday, 10:15 AM",
-            "Check Hb levels on ANM visit; ensure iron tablets taken with citrus/lemon water and not with chai.",
-            "G2P1, previous normal delivery. Current pregnancy regular ANC checkups done. BP normal 118/76."
-          ],
-          [
-            "PAT-102",
-            "Kamla Devi",
-            68,
-            "Female",
-            "+91 98112-33445",
-            "Sonpur Ward 1",
-            "91-2311-8902-1145",
-            "Hypertension (Grade 2) & Bilateral Knee Osteoarthritis",
-            "Dr. Prajan Radhakrishnan, MD",
-            "Priya Patel",
-            "RX-7920",
-            "92%",
-            "STABLE",
-            "3 days ago",
-            "Blood pressure target < 130/80. Salt intake strictly restricted; avoid papad and achar.",
-            "Hypertensive for 8 years on Amlodipine 5mg. Mild degenerative joint changes."
-          ],
-          [
-            "PAT-103",
-            "Rameshwar Singh",
-            62,
-            "Male",
-            "+91 97001-22334",
-            "Nayagaon Sector 3",
-            "91-6674-1290-7734",
-            "Type 2 Diabetes Mellitus & Stage 1 COPD",
-            "Dr. Prajan Radhakrishnan, MD",
-            "Sunita Devi",
-            "RX-7740",
-            "78%",
-            "REVIEW_NEEDED",
-            "5 days ago",
-            "Fasting blood sugar 154 mg/dL. Metformin dose adjusted. Advised low GI roti, eliminate morning jalebi/mithai.",
-            "Smoker (cessation 2021). Regular spirometry monitoring. HbA1c 7.6%."
-          ],
-          [
-            "PAT-104",
-            "Meena Kumari",
-            24,
-            "Female",
-            "+91 99341-22901",
-            "Dighwara Tola",
-            "91-5502-3841-9023",
-            "Post-Natal Day 12 / Post-partum chills & recovery",
-            "Dr. Prajan Radhakrishnan, MD",
-            "Sunita Sharma",
-            "RX-8105",
-            "70%",
-            "HIGH_RISK",
-            "Today, 07:35 AM",
-            "Monitored for post-partum infection. ANM dispatched for urgent pelvic and vitals check.",
-            "Primigravida, normal vaginal delivery 12 days ago. Baby active, breastfed well."
-          ],
-          [
-            "PAT-105",
-            "Aarav Kumar",
-            8,
-            "Male",
-            "+91 98223-45678",
-            "Sonpur Ward 3",
-            "91-7718-4490-2389",
-            "Acute Bronchitis & Seasonal Allergies",
-            "Dr. Prajan Radhakrishnan, MD",
-            "Priya Patel",
-            "RX-8302",
-            "95%",
-            "RECOVERED",
-            "1 week ago",
-            "Wheezing subsided. Completed 5-day course. Steam inhalation continued.",
-            "No prior asthma history. Responsive to antihistamines and steam."
-          ]
-        ];
-
-        for (const p of patSeeds) {
-          patStmt.run(p);
-        }
-        patStmt.finalize(() => {
-          console.log(" Doctor patient roster populated successfully.");
-        });
+    // Clean up old pre-seeded dummy patient records from Dr. Prajan Radhakrishnan's profile
+    db.run("DELETE FROM patients WHERE id IN ('PAT-101', 'PAT-102', 'PAT-103', 'PAT-104', 'PAT-105')", (delErr) => {
+      if (!delErr) {
+        console.log(" Cleaned up old pre-seeded dummy patient IDs from doctor profile.");
       }
     });
 
-    // Create and seed doctors table for Unique Doctor Code system
+    // Create and seed doctors table for Unique Doctor Code system (6 Distinct Clinical Specialists)
     db.run(`
       CREATE TABLE IF NOT EXISTS doctors (
         code TEXT PRIMARY KEY,
@@ -547,64 +444,79 @@ function setupTablesAndSeed() {
       )
     `);
 
-    db.get("SELECT COUNT(*) as count FROM doctors", [], (err, row) => {
-      if (!err && row && row.count === 0) {
-        console.log(" Seeding verified doctor registry with unique clinical codes...");
-        const docStmt = db.prepare(`
-          INSERT INTO doctors (code, name, specialty, hospital, regNo, experience, fee, slots)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `);
+    const docStmt = db.prepare(`
+      INSERT OR REPLACE INTO doctors (code, name, specialty, hospital, regNo, experience, fee, slots)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `);
 
-        const docSeeds = [
-          [
-            "DOC-4829",
-            "Dr. Prajan Radhakrishnan, MD",
-            "General Medicine & Clinical Telehealth",
-            "CareConnect Primary Health & Teleconsultation Center",
-            "NMC-48291",
-            "15 Years",
-            "₹0 (PM-ABDM Covered)",
-            JSON.stringify(["10:30 AM", "02:30 PM", "05:00 PM"])
-          ],
-          [
-            "DOC-3910",
-            "Dr. Anjali Nair, MD",
-            "Obstetrics & Maternal Care",
-            "Apollo Maternal Care Center",
-            "NMC-39102",
-            "12 Years",
-            "₹0 (Ayushman Bharat Covered)",
-            JSON.stringify(["11:00 AM", "03:30 PM", "06:00 PM"])
-          ],
-          [
-            "DOC-5201",
-            "Dr. Vikram Sethi, MS",
-            "Orthopedics & Spine Care",
-            "Fortis Orthopedic Institute",
-            "NMC-52019",
-            "16 Years",
-            "₹0 (Ayushman Bharat Covered)",
-            JSON.stringify(["09:00 AM", "01:30 PM", "04:30 PM"])
-          ],
-          [
-            "DOC-1048",
-            "Dr. Rajesh Sharma, MD",
-            "Pulmonology & Critical Care",
-            "National Chest & Allergy Institute",
-            "NMC-10482",
-            "14 Years",
-            "₹0 (Ayushman Bharat Covered)",
-            JSON.stringify(["10:00 AM", "04:00 PM"])
-          ]
-        ];
+    const docSeeds = [
+      [
+        "DOC-4829",
+        "Dr. Prajan Radhakrishnan, MD",
+        "General Medicine & Clinical Telehealth",
+        "CareConnect Primary Health & Teleconsultation Center",
+        "NMC-48291",
+        "15 Years",
+        "₹0 (PM-ABDM Covered)",
+        JSON.stringify(["10:30 AM", "02:30 PM", "05:00 PM"])
+      ],
+      [
+        "DOC-3910",
+        "Dr. Anjali Nair, MD",
+        "Obstetrics & Maternal Care",
+        "Apollo Maternal Care Center",
+        "NMC-39102",
+        "12 Years",
+        "₹0 (Ayushman Bharat Covered)",
+        JSON.stringify(["11:00 AM", "03:30 PM", "06:00 PM"])
+      ],
+      [
+        "DOC-5201",
+        "Dr. Vikram Sethi, MS",
+        "Orthopedics & Spine Care",
+        "Fortis Orthopedic Institute",
+        "NMC-52019",
+        "16 Years",
+        "₹0 (Ayushman Bharat Covered)",
+        JSON.stringify(["09:00 AM", "01:30 PM", "04:30 PM"])
+      ],
+      [
+        "DOC-1048",
+        "Dr. Rajesh Sharma, MD",
+        "Pulmonology & Critical Care",
+        "National Chest & Allergy Institute",
+        "NMC-10482",
+        "14 Years",
+        "₹0 (Ayushman Bharat Covered)",
+        JSON.stringify(["10:00 AM", "04:00 PM"])
+      ],
+      [
+        "DOC-7732",
+        "Dr. Kavita Deshmukh, MD",
+        "Cardiology & Preventive Heart Care",
+        "Metro Heart & Vascular Institute",
+        "NMC-77320",
+        "18 Years",
+        "₹0 (Ayushman Bharat Covered)",
+        JSON.stringify(["11:30 AM", "03:00 PM", "05:30 PM"])
+      ],
+      [
+        "DOC-6014",
+        "Dr. Amitav Ghosh, DM",
+        "Neurology & Neuro-Psychiatry",
+        "Institute of Neurosciences & Brain Health",
+        "NMC-60145",
+        "13 Years",
+        "₹0 (Ayushman Bharat Covered)",
+        JSON.stringify(["09:30 AM", "02:00 PM", "06:30 PM"])
+      ]
+    ];
 
-        for (const d of docSeeds) {
-          docStmt.run(d);
-        }
-        docStmt.finalize(() => {
-          console.log(" Doctor unique code registry populated successfully.");
-        });
-      }
+    for (const d of docSeeds) {
+      docStmt.run(d);
+    }
+    docStmt.finalize(() => {
+      console.log(" Doctor unique code registry populated with 6 clinical specialists.");
     });
 
     // Create and seed appointments table
@@ -1165,7 +1077,10 @@ app.get("/api/patients", (req, res) => {
 });
 
 // 2. GET single patient profile
-app.get("/api/patients/:id", (req, res) => {
+app.get("/api/patients/:id", (req, res, next) => {
+  if (["connection-requests", "connection-status", "link-doctor", "request-doctor-connection", "approve-connection", "approve-all-connections"].includes(req.params.id)) {
+    return next();
+  }
   db.get("SELECT * FROM patients WHERE id = ?", [req.params.id], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!row) return res.status(404).json({ error: "Patient profile not found" });
@@ -1443,6 +1358,63 @@ app.post("/api/patients/approve-connection", (req, res) => {
     }
 
     return res.status(404).json({ success: false, error: "Connection request not found." });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// 3c-2. POST approve ALL connections (Doctor approves all pending patient link requests)
+app.post("/api/patients/approve-all-connections", (req, res) => {
+  try {
+    const { doctorCode } = req.body;
+    const cleanDocCode = doctorCode ? doctorCode.trim().toUpperCase() : null;
+    const approvedList = [];
+
+    for (const [phone, reqObj] of patientConnectionRequests.entries()) {
+      if (reqObj.status === "PENDING_APPROVAL") {
+        if (!cleanDocCode || reqObj.doctorCode === cleanDocCode) {
+          reqObj.status = "APPROVED";
+          reqObj.approvedAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+          approvedList.push(reqObj);
+
+          db.get("SELECT * FROM doctors WHERE UPPER(code) = ?", [reqObj.doctorCode], (err, doc) => {
+            const docName = (doc && doc.name) || reqObj.doctorName || "Dr. Prajan Radhakrishnan, MD";
+            db.get("SELECT * FROM patients WHERE phone LIKE ?", [`%${reqObj.patientPhone}%`], (pErr, existing) => {
+              if (!pErr && existing) {
+                db.run(`UPDATE patients SET doctorName = ? WHERE id = ?`, [docName, existing.id]);
+              } else {
+                const newPatId = "PAT-" + Math.floor(100 + Math.random() * 900);
+                db.run(
+                  `INSERT INTO patients (id, name, age, gender, phone, village, abhaId, diagnosis, doctorName, assignedANM, activeRxId, compliance, status, lastVisit, doctorNotes, history)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                  [
+                    newPatId,
+                    reqObj.patientName || "Patient",
+                    reqObj.patientAge || 28,
+                    reqObj.patientGender || "Female",
+                    `+91 ${reqObj.patientPhone}`,
+                    "Sonpur Ward 2",
+                    reqObj.patientAbha || "91-4829-1039-4821",
+                    "Patient-Doctor Link Approved",
+                    docName,
+                    "Sunita Sharma",
+                    "RX-1001",
+                    "95%",
+                    "STABLE",
+                    "Today (Approved Link)",
+                    `Clinical connection approved in bulk via doctor command desk (${reqObj.doctorCode}).`,
+                    "ABDM teleconsultation connection confirmed."
+                  ]
+                );
+              }
+            });
+          });
+        }
+      }
+    }
+
+    console.log(`[Doctor Connection Approved All] Approved ${approvedList.length} patient connections.`);
+    return res.status(200).json({ success: true, count: approvedList.length, approved: approvedList });
   } catch (e) {
     return res.status(500).json({ success: false, error: e.message });
   }
