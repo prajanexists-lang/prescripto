@@ -695,7 +695,6 @@ app.post("/api/auth/send-voice-otp", async (req, res) => {
     return res.status(200).json({
       success: true,
       sessionId: mockSessionId,
-      fallbackOtp: mockOtp,
       message: "Voice call dispatched."
     });
   } catch (err) {
@@ -1524,8 +1523,8 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`\n======================================================`);
   console.log(` CareConnect Connected Healthcare Server (server.cjs)`);
   console.log(`======================================================`);
-  console.log(` 📱 Patient Desk: http://localhost:${PORT}/test-desk.html`);
-  console.log(` 🩺 Doctor Desk:  http://localhost:${PORT}/doctor-portal.html`);
+  console.log(` 📱 Patient Desk: http://localhost:${PORT}/`);
+  console.log(` 🩺 Doctor Desk:  http://localhost:${PORT}/doctor`);
   console.log(` 📞 2Factor.in Voice OTP: Ready (${process.env.TWOFACTOR_API_KEY ? "Live OBD API" : "Simulated Demo Mode"})`);
   console.log(`======================================================\n`);
 });

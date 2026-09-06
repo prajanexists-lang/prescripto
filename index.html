@@ -299,7 +299,7 @@
             </div>
             <p class="text-[11px] text-slate-400 mt-1 flex items-center space-x-1">
               <i data-lucide="phone-outgoing" class="w-3 h-3 text-emerald-500"></i>
-              <span>Our secure automated tele-system will call your phone line with a 6-digit voice verification code.</span>
+              <span>Our secure automated tele-system will call your phone line with a 4-digit voice verification code.</span>
             </p>
           </div>
 
@@ -2940,9 +2940,6 @@
           if (data.success) {
             activeOtpSessionId = data.sessionId;
             status.innerHTML = `<span class="text-emerald-500 font-bold">Calling +91 ${phone}! Spoken PIN active.</span>`;
-            if (data.mockOtp) {
-              status.innerHTML += ` <span class="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">Simulator OTP: ${data.mockOtp}</span>`;
-            }
           } else {
             status.innerText = "Call failed: " + (data.error || "Unknown");
           }

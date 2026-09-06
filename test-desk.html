@@ -289,31 +289,26 @@
         <button type="button" id="sendOtpBtn" class="btn-start" onclick="handleSendVoiceOtp()">
           <span>📞</span> Call Me with Voice OTP
         </button>
-        <div style="display:flex; gap:6px; align-items:center;">
-          <span style="font-size:11px; color:var(--text-muted); font-weight:600;">Quick Presets:</span>
-          <span class="quick-preset-btn" onclick="fillAuthPreset('Ramesh Kumar', '9811233445')">Ramesh Kumar</span>
-          <span class="quick-preset-btn" onclick="fillAuthPreset('Anita Devi', '9876543210')">Anita Devi</span>
-        </div>
       </div>
       <div id="sendOtpStatus" style="display:none; margin-top:12px; font-size:12.5px; font-weight:600; color:#0f766e;"></div>
     </div>
 
-    <!-- STEP B: 6-Digit OTP Entry -->
+    <!-- STEP B: 4-Digit OTP Entry -->
     <div id="otpStepB" style="display:none;">
       <div style="background:#f0fdfa; border:1px solid var(--primary-border); border-radius:6px; padding:12px 14px; margin-bottom:16px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="pulse-dot"></span>
           <span style="font-size:13px; font-weight:600; color:var(--primary);">
-            Incoming automated call arriving on <span id="callingPhoneDisplay">+91 98765 43210</span>
+            Incoming automated call arriving on <span id="callingPhoneDisplay">+91 99999 99999</span>
           </span>
         </div>
         <p style="font-size:12px; color:var(--text-muted); margin:4px 0 0 16px;">
-          Answer your phone, listen to the 6-digit voice security code, and enter it below:
+          Answer your phone, listen to the 4-digit voice security code, and enter it below:
         </p>
       </div>
 
       <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
-        <input type="text" id="otpCodeInput" class="form-input" maxlength="6" placeholder="● ● ● ● ● ●" style="font-size:18px; letter-spacing:6px; text-align:center; max-width:190px; font-weight:700;">
+        <input type="text" id="otpCodeInput" class="form-input" maxlength="4" placeholder="● ● ● ●" style="font-size:18px; letter-spacing:6px; text-align:center; max-width:140px; font-weight:700;">
         <button type="button" id="verifyOtpBtn" class="btn-start" onclick="handleVerifyVoiceOtp()">
           <span>✓</span> Verify & Start Voice Triage
         </button>
@@ -323,7 +318,6 @@
       </div>
 
       <div id="verifyOtpError" style="display:none; font-size:12.5px; font-weight:600; color:#dc2626; margin-top:8px;"></div>
-      <div id="demoOtpHint" style="display:none; font-size:11.5px; color:#0f766e; margin-top:6px; background:#ecfdf5; padding:6px 10px; border-radius:4px; border:1px dashed #a7f3d0;"></div>
     </div>
   </div>
 
@@ -497,11 +491,6 @@
     let authSessionId = null;
     let verifiedPatient = null;
 
-    window.fillAuthPreset = function(name, phone) {
-      document.getElementById('authPatientName').value = name;
-      document.getElementById('authPhone').value = phone;
-    };
-
     window.handleSendVoiceOtp = async function() {
       const name = document.getElementById('authPatientName').value.trim();
       const phoneInput = document.getElementById('authPhone').value.trim();
@@ -552,6 +541,25 @@
         }
 
         const data = await res.json();
+        if (data.autoVerified) {
+          verifiedPatient = { name, phone: cleanPhone };
+          document.getElementById('authCard').style.display = 'none';
+          document.getElementById('verifiedPatientCard').style.display = 'block';
+          document.getElementById('verifiedPatientNameDisplay').textContent = name;
+          document.getElementById('verifiedPatientPhoneDisplay').textContent = '+91 ' + cleanPhone;
+          document.getElementById('vapiLockStatus').textContent = '✅ Voice Triage Unlocked (Clinical Master)';
+          document.getElementById('vapiLockStatus').style.background = '#ecfdf5';
+          document.getElementById('vapiLockStatus').style.color = '#047857';
+          vapiPatientInput.value = name;
+          startBtn.disabled = false;
+          startBtn.className = 'btn-start';
+          startBtn.innerHTML = '<span>🎙️</span> Start Live Voice Call';
+          statusMsg.style.color = '#0284c7';
+          statusMsg.innerText = '✅ Phone verified via master account. Click Start Voice Call to speak with assistant.';
+          document.getElementById('formPatientName').value = name;
+          return;
+        }
+
         if (data.success) {
           authSessionId = data.sessionId;
           statusDiv.textContent = '✅ Voice call initiated! Please answer your phone.';
@@ -562,15 +570,6 @@
           document.getElementById('otpStepB').style.display = 'block';
           document.getElementById('otpCodeInput').value = '';
           document.getElementById('otpCodeInput').focus();
-
-          // Demo hint for instant evaluator testing
-          const demoHint = document.getElementById('demoOtpHint');
-          if (data.demoMode && data.demoOtp) {
-            demoHint.style.display = 'block';
-            demoHint.innerHTML = `💡 <strong>Simulated Call Mode:</strong> Terminal Voice Code is <strong>${data.demoOtp}</strong> (or enter <code>123456</code>).`;
-          } else {
-            demoHint.style.display = 'none';
-          }
         } else {
           throw new Error(data.error || 'Failed to dispatch voice call');
         }
@@ -591,9 +590,9 @@
       const name = document.getElementById('authPatientName').value.trim();
       const phone = document.getElementById('authPhone').value.trim();
 
-      if (!otp || otp.length < 4) {
+      if (!otp || otp.length !== 4) {
         errDiv.style.display = 'block';
-        errDiv.textContent = 'Please enter the 6-digit voice security OTP code.';
+        errDiv.textContent = 'Please enter the complete 4-digit voice security OTP code.';
         return;
       }
 
