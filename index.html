@@ -88,45 +88,46 @@
       ::-webkit-scrollbar { width: 6px; height: 6px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: #1c554b; border-radius: 4px; }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
   </head>
-  <body class="bg-[#f6f5ef] dark:bg-[#051814] text-[#1c2726] dark:text-[#e2ebe9] min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-300 transition-colors duration-300">
+  <body class="bg-[#f6f5ef] dark:bg-[#051814] text-[#1c2726] dark:text-[#e2ebe9] min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-300 transition-colors duration-300 overflow-x-hidden">
 
-    <!-- ================= FLOATING TOP NAVIGATION BAR (IDENTICAL TO PRESCRIPTO) ================= -->
-    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#061915]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-[#123630] transition-colors">
-      <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-3">
+    <!-- ================= FLOATING TOP NAVIGATION BAR ================= -->
+    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#061915]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-[#123630] transition-colors h-14 flex items-center">
+      <div class="max-w-7xl w-full mx-auto px-3 sm:px-6 py-2 flex items-center justify-between gap-2 sm:gap-3">
         
-        <!-- Left: Prescripto Plus Logo + ABDM Certified Badge -->
-        <div class="flex items-center space-x-3 shrink-0">
-          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-700 to-emerald-500 text-white flex items-center justify-center shadow-sm shadow-teal-500/20 border border-teal-500/30 shrink-0">
-            <i data-lucide="cross" class="w-5 h-5 stroke-[2.5]"></i>
+        <!-- Left: Prescripto Plus Logo -->
+        <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-teal-700 to-emerald-500 text-white flex items-center justify-center shadow-sm shadow-teal-500/20 border border-teal-500/30 shrink-0">
+            <i data-lucide="cross" class="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]"></i>
           </div>
           <div>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-1.5 sm:space-x-2">
               <span class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900 dark:text-white font-heading">
                 Prescripto<span class="text-teal-500">Plus</span>
               </span>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+              <span class="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
                 ABDM Certified
               </span>
             </div>
-            <p class="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-teal-300/70 flex items-center space-x-1.5">
+            <p class="hidden sm:flex text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-teal-300/70 items-center space-x-1.5">
               <span class="w-1.5 h-1.5 rounded-full bg-teal-400 inline-block"></span>
               <span>AI Prescription & Health Co-Pilot</span>
             </p>
           </div>
         </div>
 
-        <!-- Center: Floating Navigation Pill Bar (Prescripto Style) -->
+        <!-- Center: Floating Navigation Pill Bar (Desktop only) -->
         <nav id="nav-pill-bar" class="hidden md:flex items-center space-x-1 p-1 rounded-2xl border shadow-xs bg-slate-100/90 dark:bg-[#0b2420] border-slate-200 dark:border-[#17433c]">
-          
           <!-- Overview -->
           <button onclick="switchTab('overview')" id="nav-tab-overview" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-2 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200/80 dark:border-[#205b51]">
             <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-teal-400"></i>
             <span>Overview</span>
           </button>
 
-          <!-- Voice Triage & 2FA (CareConnect) -->
+          <!-- Voice Triage & 2FA -->
           <button onclick="switchTab('triage')" id="nav-tab-triage" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-2 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white">
             <i data-lucide="mic" class="w-3.5 h-3.5 text-teal-400"></i>
             <span>Voice Triage & 2FA</span>
@@ -158,41 +159,40 @@
             <i data-lucide="bell" class="w-3.5 h-3.5 text-teal-400"></i>
             <span>Dosage Reminders</span>
           </button>
-
         </nav>
 
-        <!-- Right: Theme Toggle + Language + Doctor Portal + User Profile -->
-        <div class="flex items-center space-x-2.5">
+        <!-- Right: Actions (Theme Toggle + Doctor Portal + User Profile) -->
+        <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
           
-          <!-- Theme Toggle Circle (Prescripto Style) -->
-          <button onclick="toggleTheme()" id="theme-btn" title="Toggle Light / Dark Mode" class="w-9 h-9 rounded-full border border-slate-200 dark:border-[#1b4841] bg-white dark:bg-[#0b2420] text-amber-500 dark:text-amber-300 flex items-center justify-center transition-all cursor-pointer shadow-xs hover:scale-105">
-            <i id="theme-icon" data-lucide="sun" class="w-4 h-4"></i>
+          <!-- Theme Toggle Circle -->
+          <button onclick="toggleTheme()" id="theme-btn" title="Toggle Light / Dark Mode" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 dark:border-[#1b4841] bg-white dark:bg-[#0b2420] text-amber-500 dark:text-amber-300 flex items-center justify-center transition-all cursor-pointer shadow-xs">
+            <i id="theme-icon" data-lucide="sun" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
           </button>
 
-          <!-- Language Selector -->
-          <div class="flex items-center bg-slate-100 dark:bg-[#0b2420] rounded-xl p-0.5 text-xs font-semibold border border-slate-200 dark:border-[#17433c]">
+          <!-- Language Selector (Tablet / Desktop) -->
+          <div class="hidden sm:flex items-center bg-slate-100 dark:bg-[#0b2420] rounded-xl p-0.5 text-xs font-semibold border border-slate-200 dark:border-[#17433c]">
             <button id="lang-en" onclick="setAppLanguage('en')" class="px-2 py-1 rounded-lg transition-colors bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-2xs">EN</button>
             <button id="lang-hi" onclick="setAppLanguage('hi')" class="px-2 py-1 rounded-lg transition-colors text-slate-500 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white">हिंदी</button>
           </div>
 
           <!-- Doctor Portal Switcher Button -->
-          <a href="/doctor" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-600 text-white shadow-xs flex items-center space-x-1 transition-all cursor-pointer" title="Switch to Doctor Clinical Command Desk">
+          <a href="/doctor" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-600 text-white shadow-xs flex items-center space-x-1 transition-all cursor-pointer" title="Switch to Doctor Clinical Command Desk">
             <i data-lucide="stethoscope" class="w-3.5 h-3.5"></i>
             <span class="hidden sm:inline">Doctor Portal →</span>
-            <span class="sm:hidden">Doc →</span>
+            <span class="sm:hidden">Doc</span>
           </a>
 
           <!-- Profile Badge with Dropdown -->
-          <div id="nav-user-chip" class="hidden items-center space-x-2 pl-2 border-l border-slate-200 dark:border-[#17433c]">
-            <div class="w-8 h-8 rounded-full bg-teal-700 text-white font-bold flex items-center justify-center text-xs shadow-xs">
-              <span id="user-avatar-initial">A</span>
+          <div id="nav-user-chip" class="hidden items-center space-x-1.5 sm:space-x-2 pl-1.5 sm:pl-2 border-l border-slate-200 dark:border-[#17433c]">
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-teal-700 text-white font-bold flex items-center justify-center text-xs shadow-xs shrink-0">
+              <span id="user-avatar-initial">P</span>
             </div>
             <div class="hidden lg:block text-left text-xs">
-              <div class="font-bold text-slate-800 dark:text-white" id="user-display-name">Anita Devi</div>
-              <div class="text-[10px] text-teal-500 font-mono" id="user-display-abha">91-4829-1039-4821</div>
+              <div class="font-bold text-slate-800 dark:text-white truncate max-w-[90px]" id="user-display-name">Patient</div>
+              <div class="text-[10px] text-teal-500 font-mono truncate max-w-[90px]" id="user-display-abha">91-4829-1039-4821</div>
             </div>
-            <button onclick="handleLogout()" title="Logout" class="p-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 rounded-xl transition-colors">
-              <i data-lucide="log-out" class="w-4 h-4"></i>
+            <button onclick="handleLogout()" title="Logout" class="p-1 sm:p-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 rounded-xl transition-colors">
+              <i data-lucide="log-out" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
             </button>
           </div>
 
@@ -201,7 +201,7 @@
       </div>
     </header>
 
-    <!-- MOBILE SUB-NAVIGATION BAR (Visible on mobile screens < md when logged in, hidden on desktop) -->
+    <!-- MOBILE SUB-NAVIGATION BAR (Visible on mobile screens < md when logged in, sticky right below 56px header) -->
     <div id="mobile-nav-pill-bar" class="hidden md:hidden overflow-x-auto no-scrollbar py-2 px-3 bg-slate-100/95 dark:bg-[#0b2420]/95 border-b border-slate-200 dark:border-[#17433c] items-center space-x-1.5 shrink-0 z-30 sticky top-14">
       <button onclick="switchTab('overview')" id="m-nav-tab-overview" class="whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-[#205b51]">
         <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-teal-400"></i>
@@ -826,7 +826,7 @@
           </div>
 
           <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-[#17433c]">
-            <table class="w-full text-left text-xs border-collapse">
+            <table class="w-full min-w-[480px] text-left text-xs border-collapse">
               <thead>
                 <tr class="bg-slate-50 dark:bg-[#061915] text-slate-600 dark:text-teal-200/80 border-b border-slate-200 dark:border-[#17433c] font-semibold">
                   <th class="p-3.5 pl-4">Prescribed Medicine & Active Salt</th>
@@ -1142,55 +1142,44 @@
             </div>
           </div>
 
-          <!-- Dynamic Connection Status Card -->
+          <!-- Dynamic Connection Status Card (Waiting Point / Approved / Not Linked) -->
           <div id="doctor-connection-status-panel" class="p-5 rounded-2xl border transition-all">
-            <!-- Populated via JS (Connected status or Unconnected warning) -->
+            <!-- Populated via JS -->
           </div>
 
-          <!-- Interactive Code Input Box -->
-          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c] space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                <i data-lucide="key-round" class="w-4 h-4 text-teal-500"></i>
-                <span>Link Attending Physician via Clinical Code</span>
+          <!-- Private Doctor Code Input Box (No Public Doctor Directory) -->
+          <div class="p-5 sm:p-6 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c] space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2 font-heading">
+                <i data-lucide="shield-check" class="w-4 h-4 text-teal-500"></i>
+                <span>Private Doctor Clinical Code Submission</span>
               </h3>
-              <span class="text-[10px] text-slate-400">Required for Rx Verification</span>
+              <span class="inline-flex items-center space-x-1 text-[10px] font-bold font-mono px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+                <i data-lucide="lock" class="w-3 h-3"></i>
+                <span>Doctor Sign-Off Required</span>
+              </span>
             </div>
-            <p class="text-xs text-slate-500 dark:text-teal-200/70">
-              Entering your doctor's unique clinical code securely ties your health jacket into their repository and unlocks AI prescription verification.
+
+            <p class="text-xs text-slate-600 dark:text-teal-200/80 leading-relaxed">
+              To protect clinical confidentiality and ensure verified medical governance under ABDM protocols, doctor records are strictly private. Please enter the unique <strong>Clinical Code</strong> provided on your prescription slip, OPD card, or clinic reception desk (e.g. <span class="font-mono font-bold text-teal-600 dark:text-teal-400">DOC-4829</span>).
             </p>
-            
+
             <div class="flex flex-col sm:flex-row gap-3 pt-1">
               <div class="relative flex-1">
                 <span class="absolute left-3.5 top-3 text-xs font-mono text-slate-400">🩺</span>
-                <input type="text" id="manual-doctor-code-input" placeholder="Enter code e.g. DOC-4829" class="w-full pl-9 pr-4 py-2.5 text-xs font-mono font-bold uppercase rounded-xl border bg-white dark:bg-[#0b2420] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none focus:border-teal-400">
+                <input type="text" id="manual-doctor-code-input" placeholder="Enter clinical code e.g. DOC-4829" class="w-full pl-9 pr-4 py-2.5 text-xs font-mono font-bold uppercase rounded-xl border bg-white dark:bg-[#0b2420] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none focus:border-teal-400">
               </div>
               <button onclick="handleManualDoctorCodeSubmit()" class="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-xs transition-colors shrink-0">
-                <i data-lucide="link" class="w-3.5 h-3.5"></i>
-                <span>Connect Doctor</span>
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>Send Connection Request →</span>
               </button>
             </div>
 
-            <!-- Quick Connect Preset -->
-            <div class="pt-2 flex flex-wrap items-center gap-2 text-xs border-t border-slate-200 dark:border-[#17433c]">
-              <span class="text-slate-500 dark:text-teal-200/70 text-[11px] font-medium">Quick link primary doctor:</span>
-              <button onclick="connectDoctorCode('DOC-4829')" class="px-3 py-1 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-700 dark:text-teal-300 font-mono text-[11px] font-bold flex items-center space-x-1.5 transition-colors cursor-pointer">
-                <span>⚡ Dr. Prajan Radhakrishnan, MD (DOC-4829)</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Verified Doctor Directory -->
-          <div class="space-y-4 pt-2">
-            <div>
-              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-                <i data-lucide="badge-check" class="w-4 h-4 text-teal-500"></i>
-                <span>National Medical Commission (NMC) Licensed Physicians</span>
-              </h3>
-              <p class="text-xs text-slate-500 dark:text-teal-200/70">Click "Connect" to link with that doctor or "Book" to schedule an appointment.</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="doctors-list-container">
-              <!-- Populated via JS -->
+            <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-[#0a231f] border border-amber-200/80 dark:border-amber-500/30 flex items-start space-x-2.5 text-xs text-amber-900 dark:text-amber-200/90">
+              <i data-lucide="info" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5"></i>
+              <div class="leading-relaxed text-[11px]">
+                <strong>Approval Process:</strong> Submitting a code places your profile into the <em>Awaiting Approval</em> waiting point. Your physician reviews and verifies the connection on the <strong>Doctor Portal (/doctor)</strong>. Prescription verification and generic medicine substitution will unlock automatically once confirmed.
+              </div>
             </div>
           </div>
 
@@ -1391,46 +1380,8 @@
 
     <!-- ================= MODAL: CONNECT DOCTOR REQUIRED BEFORE VERIFICATION ================= -->
     <div id="connect-doctor-required-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
-      <div class="bg-white dark:bg-[#0b2420] rounded-3xl max-w-md w-full p-6 space-y-5 border border-amber-500/30 shadow-2xl text-left max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center space-x-3 pb-3 border-b border-slate-100 dark:border-[#17433c]">
-          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/30 shrink-0">
-            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-slate-900 dark:text-white font-heading">Doctor Connection Required</h3>
-            <p class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">ABDM Verification Safety Gate</p>
-          </div>
-        </div>
-
-        <p class="text-xs text-slate-600 dark:text-teal-200/80 leading-relaxed">
-          Under ABDM telemedicine guidelines, no medicine or prescription can be verified without a connected attending clinician. Please connect your doctor using their unique clinical code to unlock prescription verification and generic dispensary pricing.
-        </p>
-
-        <!-- Fast 1-Click Connection -->
-        <div class="p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/30 space-y-2">
-          <div class="text-[11px] font-bold text-teal-700 dark:text-teal-300">Quick Connect Attending Physician:</div>
-          <button onclick="quickConnectAndResumeScan('DOC-4829')" class="w-full py-2.5 px-3 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-xs cursor-pointer transition-colors">
-            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-            <span>Connect Dr. Prajan Radhakrishnan (DOC-4829) & Verify Now</span>
-          </button>
-        </div>
-
-        <!-- Custom Code Input -->
-        <div class="space-y-2 pt-1">
-          <label class="block text-[11px] font-bold text-slate-700 dark:text-teal-200">Or Enter Other Doctor Code:</label>
-          <div class="flex space-x-2">
-            <input type="text" id="gate-doctor-code-input" placeholder="e.g. DOC-3910" class="flex-1 px-3 py-2 text-xs font-mono font-bold uppercase rounded-xl border bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none">
-            <button onclick="customConnectAndResumeScan()" class="px-4 py-2 rounded-xl bg-slate-800 dark:bg-[#133f38] hover:bg-slate-700 text-white text-xs font-bold cursor-pointer">
-              Connect
-            </button>
-          </div>
-        </div>
-
-        <div class="pt-2 border-t border-slate-100 dark:border-[#17433c] flex justify-end space-x-2">
-          <button onclick="closeConnectDoctorRequiredModal()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#164d41] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#10332d] text-xs font-bold cursor-pointer">
-            Cancel
-          </button>
-        </div>
+      <div id="connect-doctor-modal-body" class="bg-white dark:bg-[#0b2420] rounded-3xl max-w-md w-full p-6 space-y-5 border border-amber-500/30 shadow-2xl text-left max-h-[90vh] overflow-y-auto">
+        <!-- Rendered dynamically via openConnectDoctorRequiredModal() -->
       </div>
     </div>
 
@@ -1521,20 +1472,15 @@
               Enter Clinician Unique Code:
             </label>
             <div class="flex space-x-2">
-              <input type="text" id="opt2-code-input" value="DOC-3910" placeholder="e.g. DOC-3910, DOC-5201" class="flex-1 border rounded-xl px-3.5 py-2 text-xs font-mono font-bold uppercase bg-white dark:bg-[#0b2420] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none">
-              <button type="button" onclick="verifyNewDoctorCode()" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs flex items-center space-x-1 transition-colors cursor-pointer">
+              <input type="text" id="opt2-code-input" placeholder="Enter clinical code e.g. DOC-4829" class="flex-1 border rounded-xl px-3.5 py-2 text-xs font-mono font-bold uppercase bg-white dark:bg-[#0b2420] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none">
+              <button type="button" onclick="verifyNewDoctorCode()" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs flex items-center space-x-1 transition-colors cursor-pointer shrink-0">
                 <i data-lucide="search" class="w-3.5 h-3.5"></i>
-                <span>Verify Doctor</span>
+                <span>Verify Code</span>
               </button>
             </div>
-            <div class="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-              <span>Quick doctors:</span>
-              <button type="button" onclick="setOpt2Code('DOC-3910')" class="text-teal-600 dark:text-teal-300 hover:underline font-mono font-bold">DOC-3910 (Dr. Anjali - Maternal)</button>
-              <span>•</span>
-              <button type="button" onclick="setOpt2Code('DOC-5201')" class="text-teal-600 dark:text-teal-300 hover:underline font-mono font-bold">DOC-5201 (Dr. Vikram - Ortho)</button>
-              <span>•</span>
-              <button type="button" onclick="setOpt2Code('DOC-1048')" class="text-teal-600 dark:text-teal-300 hover:underline font-mono font-bold">DOC-1048 (Dr. Rajesh - Chest)</button>
-            </div>
+            <p class="text-[10px] text-slate-400 leading-relaxed">
+              Enter the clinical code from your prescription slip or OPD card. Doctor records are strictly private under ABDM privacy standards.
+            </p>
           </div>
 
           <!-- Verified Doctor Preview Card -->
@@ -1609,7 +1555,10 @@
         gender: "Female",
         phone: "9876543210",
         sector: "Sonpur Ward 2",
-        abhaId: "91-4829-1039-4821"
+        abhaId: "91-4829-1039-4821",
+        doctorCode: null,
+        doctorConnectionStatus: 'NONE',
+        doctorName: null
       };
 
       // Care Plan Checklist Routine Tasks (Prescripto Style)
@@ -2146,7 +2095,7 @@
         const btn = document.getElementById('btn-verify-otp');
         btn.disabled = true;
         btn.innerText = "Verifying Voice OTP...";
-        const doctorCodeInput = (document.getElementById('reg-doctor-code')?.value || 'DOC-4829').trim().toUpperCase();
+        const doctorCodeInput = (document.getElementById('reg-doctor-code')?.value || '').trim().toUpperCase();
 
         try {
           const res = await fetch('/api/auth/verify-voice-otp', {
@@ -2168,7 +2117,8 @@
               phone: pPhone ? `+91 ${pPhone.replace(/\D/g, '').slice(-10)}` : "+91 9999999999",
               sector: "Sonpur Ward 2",
               abhaId: updateDynamicAbha(),
-              doctorCode: doctorCodeInput
+              doctorCode: doctorCodeInput || null,
+              doctorConnectionStatus: doctorCodeInput ? 'PENDING_APPROVAL' : 'NONE'
             });
           } else {
             showToast(data.error || "Incorrect OTP code.", true);
@@ -2181,7 +2131,7 @@
 
       // ⚡ INSTANT TESTING BYPASS
       function bypassLogin(presetUser) {
-        const doctorCodeInput = (document.getElementById('reg-doctor-code')?.value || 'DOC-4829').trim().toUpperCase();
+        const doctorCodeInput = (document.getElementById('reg-doctor-code')?.value || '').trim().toUpperCase();
         if (presetUser === 'anita') {
           loginPatient({
             name: "Anita Devi",
@@ -2190,7 +2140,8 @@
             phone: "9876543210",
             sector: "Sonpur Ward 2",
             abhaId: "91-4829-1039-4821",
-            doctorCode: doctorCodeInput || "DOC-4829"
+            doctorCode: doctorCodeInput || null,
+            doctorConnectionStatus: doctorCodeInput ? 'PENDING_APPROVAL' : 'NONE'
           });
         } else {
           loginPatient({
@@ -2200,7 +2151,8 @@
             phone: "9140427747",
             sector: "Nayagaon Sector 4",
             abhaId: "91-7482-9018-3562",
-            doctorCode: doctorCodeInput || "DOC-4829"
+            doctorCode: doctorCodeInput || null,
+            doctorConnectionStatus: doctorCodeInput ? 'PENDING_APPROVAL' : 'NONE'
           });
         }
         triggerConfetti();
@@ -2209,30 +2161,31 @@
       function loginPatient(patient) {
         currentPatient = patient;
         const assignedDocCode = (patient.doctorCode || document.getElementById('reg-doctor-code')?.value || '').trim().toUpperCase();
-        currentPatient.doctorCode = assignedDocCode;
+        currentPatient.doctorCode = assignedDocCode || null;
+        currentPatient.doctorConnectionStatus = patient.doctorConnectionStatus || (assignedDocCode ? 'PENDING_APPROVAL' : 'NONE');
 
-        if (assignedDocCode) {
-          // Auto-link into doctor's clinical repository in backend database
-          fetch('/api/patients/link-doctor', {
+        if (assignedDocCode && currentPatient.doctorConnectionStatus === 'PENDING_APPROVAL') {
+          // Submit connection request to clinician (enters Waiting Point)
+          fetch('/api/patients/request-doctor-connection', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               doctorCode: assignedDocCode,
               name: patient.name || "Patient",
-              phone: patient.phone || "9999999999",
+              phone: (patient.phone || "9999999999").toString().replace(/\D/g, '').slice(-10),
               age: patient.age || 28,
               gender: patient.gender || "Female",
               village: patient.sector || "Sonpur Ward 2",
-              diagnosis: "ANC 28-Week Routine Follow-up & Iron Absorption Review",
               abhaId: patient.abhaId || "91-4829-1039-4821"
             })
           }).then(r => r.json()).then(res => {
             if (res.success) {
-              console.log(`[Doctor Repo Sync] Successfully linked into ${res.doctorName}'s repository (${res.doctorCode})`);
-              currentPatient.doctorName = res.doctorName;
+              currentPatient.doctorName = res.doctorName || assignedDocCode;
+              currentPatient.doctorConnectionStatus = res.status || 'PENDING_APPROVAL';
               updateDoctorConnectionUI();
+              startConnectionStatusPolling();
             }
-          }).catch(err => console.warn("Doctor sync notice:", err));
+          }).catch(err => console.warn("Doctor request notice:", err));
         }
 
         document.getElementById('nav-user-chip').classList.remove('hidden');
@@ -2257,7 +2210,7 @@
         resetScannerToBlankPlus();
         updateDoctorConnectionUI();
         if (assignedDocCode) {
-          showToast(`Welcome ${patient.name}! Linked to Doctor (${assignedDocCode}). Workspace ready.`);
+          showToast(`Welcome ${patient.name}! Doctor connection request submitted (${assignedDocCode}). Awaiting doctor approval.`);
         } else {
           showToast(`Welcome ${patient.name}! Connect a doctor under "Connect Doctor" to verify prescriptions.`);
         }
@@ -2439,11 +2392,90 @@
 
       // ================= DOCTOR CONNECTION & VERIFICATION GATING =================
       let pendingOcrScan = null;
+      let connectionPollingTimer = null;
 
-      function openConnectDoctorRequiredModal(imageSrc, rxData, fileName) {
+      function openConnectDoctorRequiredModal(imageSrc, rxData, fileName, mode) {
         pendingOcrScan = { imageSrc, rxData, fileName };
         const modal = document.getElementById('connect-doctor-required-modal');
-        if (modal) modal.classList.remove('hidden');
+        const modalBody = document.getElementById('connect-doctor-modal-body');
+        if (!modal || !modalBody) return;
+
+        const isPending = currentPatient && currentPatient.doctorConnectionStatus === 'PENDING_APPROVAL';
+
+        if (isPending) {
+          modalBody.innerHTML = `
+            <div class="flex items-center space-x-3 pb-3 border-b border-slate-100 dark:border-[#17433c]">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/30 shrink-0">
+                <i data-lucide="clock" class="w-5 h-5 text-amber-500 animate-pulse"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white font-heading">Approval Pending</h3>
+                <p class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">Waiting Point • ABDM Clinical Safety Gate</p>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-600 dark:text-teal-200/80 leading-relaxed">
+              You requested connection with Doctor Code <strong class="font-mono text-teal-600 dark:text-teal-400">${escapeHtml(currentPatient.doctorCode || 'DOC-4829')}</strong>. Medicine and prescription verification remains safely locked until your doctor approves the link from their clinic desk.
+            </p>
+
+            <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2 text-xs">
+              <div class="font-bold text-amber-800 dark:text-amber-300 flex items-center space-x-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                <span>Doctor Sign-Off Required</span>
+              </div>
+              <p class="text-[11px] text-slate-600 dark:text-teal-200/80">
+                Your doctor reviews and approves requests on the <a href="/doctor" target="_blank" class="underline font-bold text-teal-600 dark:text-teal-400">Doctor Portal (/doctor)</a>.
+              </p>
+              <button onclick="simulateDoctorApproval()" class="w-full mt-2 py-2.5 px-3 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-xs cursor-pointer transition-colors">
+                <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                <span>⚡ Simulate Doctor Approval (Demo Test)</span>
+              </button>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 dark:border-[#17433c] flex justify-end space-x-2">
+              <button onclick="closeConnectDoctorRequiredModal()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#164d41] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#10332d] text-xs font-bold cursor-pointer">
+                Dismiss
+              </button>
+            </div>
+          `;
+        } else {
+          modalBody.innerHTML = `
+            <div class="flex items-center space-x-3 pb-3 border-b border-slate-100 dark:border-[#17433c]">
+              <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/30 shrink-0">
+                <i data-lucide="shield-alert" class="w-5 h-5 text-amber-500"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white font-heading">Doctor Connection Required</h3>
+                <p class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">ABDM Verification Safety Gate</p>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-600 dark:text-teal-200/80 leading-relaxed">
+              Under ABDM telemedicine guidelines, no medicine or prescription can be verified without an approved attending clinician. Please enter your doctor's clinical code below to request connection.
+            </p>
+
+            <!-- Custom Code Input -->
+            <div class="space-y-2 pt-1">
+              <label class="block text-[11px] font-bold text-slate-700 dark:text-teal-200">Doctor Clinical Code (from prescription slip or clinic):</label>
+              <div class="flex space-x-2">
+                <input type="text" id="gate-doctor-code-input" placeholder="e.g. DOC-4829" class="flex-1 px-3 py-2 text-xs font-mono font-bold uppercase rounded-xl border bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none">
+                <button onclick="submitGateDoctorCodeRequest()" class="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold cursor-pointer flex items-center space-x-1 shrink-0">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                  <span>Send Request</span>
+                </button>
+              </div>
+              <p class="text-[10px] text-slate-400">After submitting, your doctor will approve your link to unlock verification.</p>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 dark:border-[#17433c] flex justify-end space-x-2">
+              <button onclick="closeConnectDoctorRequiredModal()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#164d41] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#10332d] text-xs font-bold cursor-pointer">
+                Dismiss
+              </button>
+            </div>
+          `;
+        }
+
+        modal.classList.remove('hidden');
         lucide.createIcons();
       }
 
@@ -2452,31 +2484,13 @@
         if (modal) modal.classList.add('hidden');
       }
 
-      function quickConnectAndResumeScan(code) {
-        connectDoctorCode(code, () => {
-          closeConnectDoctorRequiredModal();
-          if (pendingOcrScan) {
-            const scan = pendingOcrScan;
-            pendingOcrScan = null;
-            runOcrScan(scan.imageSrc, scan.rxData, scan.fileName);
-          }
-        });
-      }
-
-      function customConnectAndResumeScan() {
+      function submitGateDoctorCodeRequest() {
         const code = (document.getElementById('gate-doctor-code-input')?.value || '').trim().toUpperCase();
         if (!code) {
           showToast("Please enter a doctor clinical code (e.g. DOC-4829)", true);
           return;
         }
-        connectDoctorCode(code, () => {
-          closeConnectDoctorRequiredModal();
-          if (pendingOcrScan) {
-            const scan = pendingOcrScan;
-            pendingOcrScan = null;
-            runOcrScan(scan.imageSrc, scan.rxData, scan.fileName);
-          }
-        });
+        handleDoctorConnectionRequest(code);
       }
 
       function handleManualDoctorCodeSubmit() {
@@ -2485,13 +2499,13 @@
           showToast("Please enter a valid doctor code.", true);
           return;
         }
-        connectDoctorCode(code);
+        handleDoctorConnectionRequest(code);
       }
 
-      async function connectDoctorCode(code, callback) {
+      async function handleDoctorConnectionRequest(code) {
         const cleanCode = (code || '').trim().toUpperCase();
         if (!cleanCode) {
-          showToast("Please enter a valid doctor code.", true);
+          showToast("Please enter a doctor clinical code (e.g. DOC-4829)", true);
           return;
         }
 
@@ -2506,74 +2520,138 @@
           };
         }
 
-        showToast(`Verifying clinical code ${cleanCode}...`);
+        showToast(`Submitting connection request for ${cleanCode}...`);
         try {
-          const res = await fetch(`/api/doctors/verify-code/${encodeURIComponent(cleanCode)}`);
+          const res = await fetch('/api/patients/request-doctor-connection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              doctorCode: cleanCode,
+              name: currentPatient.name || "Patient",
+              phone: currentPatient.phone || "9999999999",
+              age: currentPatient.age || 28,
+              gender: currentPatient.gender || "Female",
+              village: currentPatient.sector || "Sonpur Ward 2",
+              abhaId: currentPatient.abhaId || "91-4829-1039-4821"
+            })
+          });
+
           const data = await res.json();
-          if (data.success && data.doctor) {
-            currentPatient.doctorCode = data.doctor.code;
-            currentPatient.doctorName = data.doctor.name;
-            currentPatient.doctorSpecialty = data.doctor.specialty;
-            currentPatient.doctorHospital = data.doctor.hospital;
-
-            fetch('/api/patients/link-doctor', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                doctorCode: data.doctor.code,
-                name: currentPatient.name || "Patient",
-                phone: currentPatient.phone || "9999999999",
-                age: currentPatient.age || 28,
-                gender: currentPatient.gender || "Female",
-                village: currentPatient.sector || "Sonpur Ward 2",
-                diagnosis: "Prescription Digitization & Follow-up Review",
-                abhaId: currentPatient.abhaId || "91-4829-1039-4821"
-              })
-            }).catch(err => console.warn(err));
-
+          if (data.success) {
+            currentPatient.doctorCode = data.doctorCode;
+            currentPatient.doctorName = data.doctorName;
+            currentPatient.doctorConnectionStatus = 'PENDING_APPROVAL';
             updateDoctorConnectionUI();
-            renderDoctors(DOCTORS);
-            showToast(`Connected to ${data.doctor.name} (${data.doctor.code})! Prescriptions unlocked.`);
-            triggerConfetti();
-            if (typeof callback === 'function') callback();
-            return;
+            startConnectionStatusPolling();
+            showToast(`Connection request sent to ${data.doctorName} (${data.doctorCode}). Awaiting doctor approval.`);
+
+            // If modal is active, update modal into waiting point
+            const modal = document.getElementById('connect-doctor-required-modal');
+            if (modal && !modal.classList.contains('hidden') && pendingOcrScan) {
+              openConnectDoctorRequiredModal(pendingOcrScan.imageSrc, pendingOcrScan.rxData, pendingOcrScan.fileName, 'PENDING_APPROVAL');
+            }
+          } else {
+            showToast(data.error || `Invalid doctor code '${cleanCode}'.`, true);
           }
         } catch (e) {
-          console.warn("Doctor verify fetch error:", e);
-        }
-
-        // Match against local DOCTORS registry
-        const foundLocal = DOCTORS.find(d => d.code === cleanCode || (d.regNo && d.regNo.toUpperCase() === cleanCode));
-        if (foundLocal) {
-          currentPatient.doctorCode = foundLocal.code;
-          currentPatient.doctorName = foundLocal.name;
-          currentPatient.doctorSpecialty = foundLocal.specialty;
-          currentPatient.doctorHospital = foundLocal.hospital;
-          updateDoctorConnectionUI();
-          renderDoctors(DOCTORS);
-          showToast(`Connected to ${foundLocal.name} (${foundLocal.code})! Prescriptions unlocked.`);
-          triggerConfetti();
-          if (typeof callback === 'function') callback();
-        } else if (cleanCode.startsWith('DOC')) {
+          console.warn("Doctor request err:", e);
           currentPatient.doctorCode = cleanCode;
           currentPatient.doctorName = "Dr. Prajan Radhakrishnan, MD";
+          currentPatient.doctorConnectionStatus = 'PENDING_APPROVAL';
           updateDoctorConnectionUI();
-          renderDoctors(DOCTORS);
-          showToast(`Connected to Dr. Prajan Radhakrishnan (${cleanCode})! Prescriptions unlocked.`);
-          triggerConfetti();
-          if (typeof callback === 'function') callback();
-        } else {
-          showToast(`Invalid doctor code '${cleanCode}'. Please enter 'DOC-4829'.`, true);
+          startConnectionStatusPolling();
+          showToast(`Connection request sent for ${cleanCode}. Awaiting approval.`);
+        }
+      }
+
+      function startConnectionStatusPolling() {
+        if (connectionPollingTimer) clearInterval(connectionPollingTimer);
+
+        connectionPollingTimer = setInterval(async () => {
+          if (!currentPatient || currentPatient.doctorConnectionStatus !== 'PENDING_APPROVAL') {
+            clearInterval(connectionPollingTimer);
+            connectionPollingTimer = null;
+            return;
+          }
+
+          try {
+            const pPhone = (currentPatient.phone || '9999999999').toString().replace(/\D/g, '').slice(-10);
+            const res = await fetch(`/api/patients/connection-status?phone=${pPhone}`);
+            const data = await res.json();
+            if (data.success && data.status === 'APPROVED') {
+              clearInterval(connectionPollingTimer);
+              connectionPollingTimer = null;
+              currentPatient.doctorConnectionStatus = 'APPROVED';
+              currentPatient.doctorCode = data.doctorCode || currentPatient.doctorCode;
+              currentPatient.doctorName = data.doctorName || currentPatient.doctorName || 'Dr. Prajan Radhakrishnan, MD';
+              updateDoctorConnectionUI();
+              showToast(`🎉 Connection Approved by ${currentPatient.doctorName}! Medicine verification unlocked.`);
+              triggerConfetti();
+
+              // If an OCR scan was waiting, run it now!
+              if (pendingOcrScan) {
+                closeConnectDoctorRequiredModal();
+                const scan = pendingOcrScan;
+                pendingOcrScan = null;
+                runOcrScan(scan.imageSrc, scan.rxData, scan.fileName);
+              }
+            }
+          } catch (e) {
+            console.warn("Connection poll error:", e);
+          }
+        }, 3000);
+      }
+
+      async function simulateDoctorApproval() {
+        if (!currentPatient || !currentPatient.doctorCode) {
+          showToast("No doctor code specified.", true);
+          return;
+        }
+        showToast("Simulating doctor approval on clinical desk...");
+        try {
+          const pPhone = (currentPatient.phone || '9999999999').toString().replace(/\D/g, '').slice(-10);
+          const res = await fetch('/api/patients/approve-connection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: pPhone })
+          });
+          const data = await res.json();
+          if (data.success) {
+            currentPatient.doctorConnectionStatus = 'APPROVED';
+            currentPatient.doctorName = (data.request && data.request.doctorName) || currentPatient.doctorName || 'Dr. Prajan Radhakrishnan, MD';
+            if (connectionPollingTimer) {
+              clearInterval(connectionPollingTimer);
+              connectionPollingTimer = null;
+            }
+            updateDoctorConnectionUI();
+            showToast(`✅ Doctor approved your connection! Verification unlocked.`);
+            triggerConfetti();
+
+            if (pendingOcrScan) {
+              closeConnectDoctorRequiredModal();
+              const scan = pendingOcrScan;
+              pendingOcrScan = null;
+              runOcrScan(scan.imageSrc, scan.rxData, scan.fileName);
+            }
+          } else {
+            showToast(data.error || "Failed to approve connection", true);
+          }
+        } catch (e) {
+          showToast("Network error approving connection", true);
         }
       }
 
       function disconnectDoctor() {
         if (currentPatient) {
-          currentPatient.doctorCode = '';
-          currentPatient.doctorName = '';
+          currentPatient.doctorCode = null;
+          currentPatient.doctorName = null;
+          currentPatient.doctorConnectionStatus = 'NONE';
+        }
+        if (connectionPollingTimer) {
+          clearInterval(connectionPollingTimer);
+          connectionPollingTimer = null;
         }
         updateDoctorConnectionUI();
-        renderDoctors(DOCTORS);
         showToast("Disconnected from doctor. Medicine verification is now locked.");
       }
 
@@ -2582,32 +2660,38 @@
         const mNavBadge = document.getElementById('m-nav-doc-badge');
         const statusPanel = document.getElementById('doctor-connection-status-panel');
 
-        const isConnected = !!(currentPatient && currentPatient.doctorCode);
-        const docCode = isConnected ? currentPatient.doctorCode : '';
-        const docName = isConnected ? (currentPatient.doctorName || 'Dr. Prajan Radhakrishnan, MD') : '';
+        const status = (currentPatient && currentPatient.doctorConnectionStatus) || 'NONE';
+        const docCode = currentPatient?.doctorCode || '';
+        const docName = currentPatient?.doctorName || 'Dr. Prajan Radhakrishnan, MD';
 
         if (navBadge) {
-          if (isConnected) {
+          if (status === 'APPROVED') {
             navBadge.className = "px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30";
             navBadge.innerText = docCode;
-          } else {
+          } else if (status === 'PENDING_APPROVAL') {
             navBadge.className = "px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30";
+            navBadge.innerText = "⏳ PENDING";
+          } else {
+            navBadge.className = "px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30";
             navBadge.innerText = "Not Linked";
           }
         }
 
         if (mNavBadge) {
-          if (isConnected) {
+          if (status === 'APPROVED') {
             mNavBadge.className = "px-1 py-0.2 rounded-full text-[8px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400";
             mNavBadge.innerText = docCode;
-          } else {
+          } else if (status === 'PENDING_APPROVAL') {
             mNavBadge.className = "px-1 py-0.2 rounded-full text-[8px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400";
+            mNavBadge.innerText = "⏳";
+          } else {
+            mNavBadge.className = "px-1 py-0.2 rounded-full text-[8px] font-mono font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400";
             mNavBadge.innerText = "!";
           }
         }
 
         if (statusPanel) {
-          if (isConnected) {
+          if (status === 'APPROVED') {
             statusPanel.className = "p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-3";
             statusPanel.innerHTML = `
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -2617,8 +2701,8 @@
                   </div>
                   <div>
                     <div class="flex items-center space-x-2">
-                      <h3 class="text-sm font-bold text-slate-900 dark:text-white font-heading">${docName}</h3>
-                      <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">${docCode}</span>
+                      <h3 class="text-sm font-bold text-slate-900 dark:text-white font-heading">${escapeHtml(docName)}</h3>
+                      <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">${escapeHtml(docCode)}</span>
                     </div>
                     <p class="text-xs text-slate-500 dark:text-teal-200/80">Primary Attending Physician • Linked & Verified</p>
                   </div>
@@ -2643,26 +2727,59 @@
                 </button>
               </div>
             `;
+          } else if (status === 'PENDING_APPROVAL') {
+            statusPanel.className = "p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-4";
+            statusPanel.innerHTML = `
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/30 shrink-0">
+                    <i data-lucide="clock" class="w-5 h-5 text-amber-500 animate-pulse"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center space-x-2">
+                      <h3 class="text-sm font-bold text-slate-900 dark:text-white font-heading">⏳ Waiting Point: Awaiting Doctor Approval</h3>
+                      <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/30">${escapeHtml(docCode)}</span>
+                    </div>
+                    <p class="text-xs text-amber-600 dark:text-amber-400 font-medium">Connection request submitted • Clinical verification pending sign-off</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button onclick="simulateDoctorApproval()" class="px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs transition-colors shrink-0">
+                    <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                    <span>⚡ Doctor Approve (Demo Simulator)</span>
+                  </button>
+                  <button onclick="disconnectDoctor()" class="px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-[#16443c] bg-white dark:bg-[#0b2420] text-slate-700 dark:text-slate-300 text-xs font-semibold cursor-pointer">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-white/70 dark:bg-[#061915]/70 border border-amber-500/20 text-xs space-y-2 text-slate-600 dark:text-teal-200/90 leading-relaxed">
+                <div class="flex items-center space-x-2 text-amber-700 dark:text-amber-300 font-semibold">
+                  <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                  <span>ABDM Real-Time Gateway Polling: Awaiting Physician Sign-Off</span>
+                </div>
+                <p>
+                  You submitted clinical code <strong>${escapeHtml(docCode)}</strong>. Under ABDM national telemedicine standards, all prescription analysis and generic matching remain safely gated until your doctor confirms the link on the <a href="/doctor" target="_blank" class="underline font-bold text-teal-600 dark:text-teal-400">Doctor Portal (/doctor)</a>.
+                </p>
+              </div>
+            `;
           } else {
             statusPanel.className = "p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3";
             statusPanel.innerHTML = `
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center space-x-3">
                   <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/30 shrink-0">
-                    <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500"></i>
+                    <i data-lucide="shield-alert" class="w-5 h-5 text-amber-500"></i>
                   </div>
                   <div>
                     <h3 class="text-sm font-bold text-slate-900 dark:text-white font-heading">⚠️ No Doctor Connected</h3>
                     <p class="text-xs text-amber-600 dark:text-amber-400 font-medium">Prescription & medicine verification is currently locked</p>
                   </div>
                 </div>
-                <button onclick="connectDoctorCode('DOC-4829')" class="px-3.5 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs shrink-0">
-                  <i data-lucide="zap" class="w-3.5 h-3.5"></i>
-                  <span>Connect DOC-4829</span>
-                </button>
               </div>
-              <p class="text-xs text-slate-600 dark:text-teal-200/80">
-                To verify prescriptions and access generic dispensary pricing under ABDM protocols, you must connect with your attending physician using their clinical code below.
+              <p class="text-xs text-slate-600 dark:text-teal-200/80 leading-relaxed">
+                To verify prescriptions and access generic dispensary pricing under ABDM protocols, you must submit your doctor's clinical code below and await doctor approval.
               </p>
             `;
           }
@@ -2672,9 +2789,13 @@
 
       // Animated OCR scanning pipeline
       function runOcrScan(imageSrc, rxData, fileName = null) {
-        // GATING CHECK: Must have connected doctor to verify medicines
+        // GATING CHECK: Must have an APPROVED connected doctor to verify medicines
         if (!currentPatient || !currentPatient.doctorCode) {
-          openConnectDoctorRequiredModal(imageSrc, rxData, fileName);
+          openConnectDoctorRequiredModal(imageSrc, rxData, fileName, 'NO_CODE');
+          return;
+        }
+        if (currentPatient.doctorConnectionStatus !== 'APPROVED') {
+          openConnectDoctorRequiredModal(imageSrc, rxData, fileName, 'PENDING_APPROVAL');
           return;
         }
 
@@ -3957,8 +4078,21 @@
       let activeVerifiedNewDoctor = null;
 
       function openScheduleMeetModal() {
+        const docName = (currentPatient && currentPatient.doctorName) || "Dr. Prajan Radhakrishnan, MD";
+        const docCode = (currentPatient && currentPatient.doctorCode) || "DOC-4829";
+        const isApproved = currentPatient && currentPatient.doctorConnectionStatus === 'APPROVED';
+
+        const nameEl = document.getElementById('opt1-doc-name');
+        const codeEl = document.getElementById('opt1-doc-code');
+        if (nameEl) nameEl.innerText = isApproved ? docName : 'No Approved Doctor Linked';
+        if (codeEl) codeEl.innerText = isApproved ? docCode : 'NOT LINKED';
+
         document.getElementById('schedule-meet-modal').classList.remove('hidden');
-        switchMeetTab(1);
+        if (isApproved) {
+          switchMeetTab(1);
+        } else {
+          switchMeetTab(2);
+        }
       }
 
       function closeScheduleMeetModal() {
@@ -3981,7 +4115,8 @@
           t1.className = "flex-1 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition-all text-slate-500 dark:text-teal-200/70 hover:text-slate-900 dark:hover:text-white cursor-pointer";
           v2.classList.remove('hidden');
           v1.classList.add('hidden');
-          if (!activeVerifiedNewDoctor) {
+          const codeIn = (document.getElementById('opt2-code-input')?.value || '').trim();
+          if (codeIn && !activeVerifiedNewDoctor) {
             verifyNewDoctorCode();
           }
         }
@@ -3989,9 +4124,18 @@
       }
 
       async function submitOption1Appointment() {
+        if (!currentPatient || currentPatient.doctorConnectionStatus !== 'APPROVED') {
+          showToast("Please link and get approval from your doctor before scheduling.", true);
+          switchTab('doctors');
+          closeScheduleMeetModal();
+          return;
+        }
+
         const dateVal = document.getElementById('opt1-date-select').value;
         const slotVal = document.getElementById('opt1-slot-select').value;
         const complaintVal = document.getElementById('opt1-complaint').value || "Routine Telehealth Consultation";
+        const docCode = currentPatient.doctorCode || 'DOC-4829';
+        const docName = currentPatient.doctorName || 'Dr. Prajan Radhakrishnan, MD';
 
         try {
           // 1. Schedule appointment in backend
@@ -3999,9 +4143,9 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              doctorCode: 'DOC-4829',
-              patientName: currentPatient.name || 'Anita Devi',
-              patientPhone: currentPatient.phone || '+91 98765-43210',
+              doctorCode: docCode,
+              patientName: currentPatient.name || 'Patient',
+              patientPhone: (currentPatient.phone || '9999999999').toString().replace(/\D/g, '').slice(-10),
               date: dateVal,
               time: slotVal,
               complaint: complaintVal,

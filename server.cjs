@@ -1314,6 +1314,159 @@ app.post("/api/patients/link-doctor", (req, res) => {
   }
 });
 
+// ================= PATIENT-DOCTOR CONNECTION REQUESTS (WAITING POINT & APPROVAL) =================
+const patientConnectionRequests = new Map();
+
+// 3a. POST request connection with a doctor (enters PENDING_APPROVAL waiting point)
+app.post("/api/patients/request-doctor-connection", (req, res) => {
+  try {
+    const { doctorCode, name, phone, age, gender, abhaId } = req.body;
+    if (!doctorCode) {
+      return res.status(400).json({ success: false, error: "Doctor clinical code is required." });
+    }
+    const cleanCode = doctorCode.trim().toUpperCase();
+    const cleanPhone = (phone || "9999999999").toString().replace(/\D/g, "").slice(-10);
+
+    db.get("SELECT * FROM doctors WHERE UPPER(code) = ?", [cleanCode], (err, doc) => {
+      if (err) return res.status(500).json({ success: false, error: err.message });
+      if (!doc) {
+        return res.status(404).json({
+          success: false,
+          error: `Doctor clinical code '${cleanCode}' is not recognized. Please verify with your clinic or enter 'DOC-4829'.`
+        });
+      }
+
+      const reqId = "CONN-" + Math.floor(1000 + Math.random() * 9000);
+      const connObj = {
+        id: reqId,
+        doctorCode: cleanCode,
+        doctorName: doc.name,
+        patientName: name || "Patient",
+        patientPhone: cleanPhone,
+        patientAge: age || 28,
+        patientGender: gender || "Female",
+        patientAbha: abhaId || "91-4829-1039-4821",
+        status: "PENDING_APPROVAL",
+        createdAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      };
+
+      patientConnectionRequests.set(cleanPhone, connObj);
+      console.log(`[Doctor Connection Request] Patient ${connObj.patientName} (+91 ${cleanPhone}) requested connection with ${cleanCode}. Status: PENDING_APPROVAL.`);
+
+      return res.status(200).json({
+        success: true,
+        status: "PENDING_APPROVAL",
+        requestId: reqId,
+        doctorCode: cleanCode,
+        doctorName: doc.name,
+        message: "Connection request submitted to clinician. Awaiting doctor approval."
+      });
+    });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// 3b. GET connection requests (for Doctor Portal)
+app.get("/api/patients/connection-requests", (req, res) => {
+  const list = Array.from(patientConnectionRequests.values());
+  return res.status(200).json({ success: true, requests: list });
+});
+
+// 3c. POST approve connection (Doctor approves link)
+app.post("/api/patients/approve-connection", (req, res) => {
+  try {
+    const { phone, requestId } = req.body;
+    let foundKey = null;
+    let foundReq = null;
+
+    for (const [k, v] of patientConnectionRequests.entries()) {
+      if ((phone && k === phone.replace(/\D/g, "").slice(-10)) || (requestId && v.id === requestId)) {
+        foundKey = k;
+        foundReq = v;
+        break;
+      }
+    }
+
+    if (!foundReq && phone) {
+      const cleanP = phone.replace(/\D/g, "").slice(-10);
+      foundReq = {
+        id: "CONN-" + Math.floor(1000 + Math.random() * 9000),
+        doctorCode: "DOC-4829",
+        doctorName: "Dr. Prajan Radhakrishnan, MD",
+        patientName: "Patient",
+        patientPhone: cleanP,
+        status: "APPROVED"
+      };
+      patientConnectionRequests.set(cleanP, foundReq);
+    }
+
+    if (foundReq) {
+      foundReq.status = "APPROVED";
+      foundReq.approvedAt = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+      db.get("SELECT * FROM doctors WHERE UPPER(code) = ?", [foundReq.doctorCode], (err, doc) => {
+        const docName = (doc && doc.name) || foundReq.doctorName || "Dr. Prajan Radhakrishnan, MD";
+        db.get("SELECT * FROM patients WHERE phone LIKE ?", [`%${foundReq.patientPhone}%`], (pErr, existing) => {
+          if (!pErr && existing) {
+            db.run(`UPDATE patients SET doctorName = ? WHERE id = ?`, [docName, existing.id]);
+          } else {
+            const newPatId = "PAT-" + Math.floor(100 + Math.random() * 900);
+            db.run(
+              `INSERT INTO patients (id, name, age, gender, phone, village, abhaId, diagnosis, doctorName, assignedANM, activeRxId, compliance, status, lastVisit, doctorNotes, history)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              [
+                newPatId,
+                foundReq.patientName || "Patient",
+                foundReq.patientAge || 28,
+                foundReq.patientGender || "Female",
+                `+91 ${foundReq.patientPhone}`,
+                "Sonpur Ward 2",
+                foundReq.patientAbha || "91-4829-1039-4821",
+                "Patient-Doctor Link Approved",
+                docName,
+                "Sunita Sharma",
+                "RX-1001",
+                "92%",
+                "STABLE",
+                "Today (Approved Link)",
+                `Clinical connection approved via doctor command desk (${foundReq.doctorCode}).`,
+                "ABDM teleconsultation connection confirmed."
+              ]
+            );
+          }
+        });
+      });
+
+      console.log(`[Doctor Connection Approved] Link approved for patient ${foundReq.patientName} (+91 ${foundReq.patientPhone}) with ${foundReq.doctorCode}.`);
+      return res.status(200).json({ success: true, status: "APPROVED", request: foundReq });
+    }
+
+    return res.status(404).json({ success: false, error: "Connection request not found." });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// 3d. GET connection status for patient
+app.get("/api/patients/connection-status", (req, res) => {
+  const phone = (req.query.phone || "").toString().replace(/\D/g, "").slice(-10);
+  if (!phone) {
+    return res.status(200).json({ status: "NONE" });
+  }
+  const found = patientConnectionRequests.get(phone);
+  if (found) {
+    return res.status(200).json({
+      success: true,
+      status: found.status,
+      doctorCode: found.doctorCode,
+      doctorName: found.doctorName,
+      requestId: found.id
+    });
+  }
+  return res.status(200).json({ status: "NONE" });
+});
+
 // 4. POST schedule/request appointment (Option 1: connected doctor, Option 2: new doctor via code)
 app.post("/api/appointments/schedule", (req, res) => {
   try {
