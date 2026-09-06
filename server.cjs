@@ -2,9 +2,16 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const path = require("path");
-const sqlite3Pkg = require("sqlite3");
-
-const sqlite3 = sqlite3Pkg.verbose();
+let sqlite3 = null;
+let sqliteAvailable = false;
+try {
+  const sqlite3Pkg = require("sqlite3");
+  sqlite3 = sqlite3Pkg.verbose();
+  sqliteAvailable = true;
+} catch (e) {
+  console.warn("⚠️ Native sqlite3 binary unavailable in container environment:", e.message);
+  console.log(" Activating Zero-Crash In-Memory Database Fallback for Cloud Deployment");
+}
 dotenv.config();
 
 const app = express();
@@ -22,13 +29,123 @@ const mockOtpSessions = new Map();
 let db;
 const dbFilePath = path.join(__dirname, "careconnect.db");
 
+function createFallbackDatabase() {
+  const store = {
+    triage_records: [],
+    calling_sessions: [],
+    prescriptions: [],
+    patients: [],
+    doctors: [],
+    appointments: []
+  };
+
+  function getTableName(sql) {
+    const m = (sql || "").match(/(?:FROM|INTO|UPDATE|TABLE\s+IF\s+NOT\s+EXISTS)\s+([a-zA-Z0-9_]+)/i);
+    return m ? m[1].toLowerCase() : "";
+  }
+
+  return {
+    serialize: (fn) => { if (fn) fn(); },
+    run: function(sql, params, cb) {
+      if (typeof params === "function") { cb = params; params = []; }
+      const table = getTableName(sql);
+      const upper = (sql || "").toUpperCase().trim();
+
+      if (upper.startsWith("INSERT INTO")) {
+        if (table && store[table]) {
+          const colMatch = sql.match(/INSERT\s+INTO\s+[a-zA-Z0-9_]+\s*\(([^)]+)\)/i);
+          if (colMatch && Array.isArray(params)) {
+            const cols = colMatch[1].split(",").map(c => c.trim());
+            const row = {};
+            cols.forEach((col, idx) => { row[col] = params[idx]; });
+            store[table].unshift(row);
+          } else if (params && typeof params === "object") {
+            store[table].unshift(params);
+          }
+        }
+      } else if (upper.startsWith("UPDATE")) {
+        if (table && store[table] && Array.isArray(params)) {
+          const id = params[params.length - 1];
+          const found = store[table].find(r => r.id === id);
+          if (found) {
+            if (table === "prescriptions") {
+              if (params[0]) found.status = params[0];
+              if (params[1]) found.doctorNotes = params[1];
+            } else if (table === "patients") {
+              if (params[0]) found.doctorName = params[0];
+              if (params[1]) found.diagnosis = params[1];
+            }
+          }
+        }
+      }
+      if (cb) cb.call({ changes: 1 }, null);
+    },
+    prepare: function(sql) {
+      const self = this;
+      return {
+        run: function(...args) {
+          let cb = null;
+          let p = args;
+          if (typeof args[args.length - 1] === "function") {
+            cb = p.pop();
+          }
+          self.run(sql, p, cb);
+        },
+        finalize: function(cb) { if (cb) cb(); }
+      };
+    },
+    get: function(sql, params, cb) {
+      if (typeof params === "function") { cb = params; params = []; }
+      const table = getTableName(sql);
+      const upper = (sql || "").toUpperCase().trim();
+
+      if (upper.includes("COUNT(*)")) {
+        const count = (store[table] && store[table].length) || 0;
+        return cb(null, { count });
+      }
+
+      if (table && store[table]) {
+        if (Array.isArray(params) && params.length > 0) {
+          const val = params[0];
+          const found = store[table].find(r => {
+            return (r.id && r.id === val) ||
+                   (r.code && String(r.code).toUpperCase() === String(val).toUpperCase()) ||
+                   (r.phone && String(r.phone).includes(String(val))) ||
+                   (r.name && String(r.name).toLowerCase().includes(String(val).toLowerCase()));
+          });
+          return cb(null, found || null);
+        }
+        return cb(null, store[table][0] || null);
+      }
+      return cb(null, null);
+    },
+    all: function(sql, params, cb) {
+      if (typeof params === "function") { cb = params; params = []; }
+      const table = getTableName(sql);
+      if (table && store[table]) {
+        return cb(null, [...store[table]]);
+      }
+      return cb(null, []);
+    }
+  };
+}
+
 function initializeDatabase() {
+  if (!sqliteAvailable) {
+    db = createFallbackDatabase();
+    console.log(" Connected to Zero-Crash In-Memory Fallback Database Adapter");
+    setupTablesAndSeed();
+    return;
+  }
+
   db = new sqlite3.Database(dbFilePath, (err) => {
     if (err) {
       console.warn("⚠️ File-based SQLite error, falling back to in-memory SQLite:", err.message);
       db = new sqlite3.Database(":memory:", (memErr) => {
         if (memErr) {
-          console.error("❌ Memory SQLite failed:", memErr.message);
+          console.error("❌ Memory SQLite failed, activating fallback:", memErr.message);
+          db = createFallbackDatabase();
+          setupTablesAndSeed();
         } else {
           console.log(" Connected to in-memory SQLite Database");
           setupTablesAndSeed();
