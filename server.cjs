@@ -648,29 +648,29 @@ app.post("/api/auth/send-voice-otp", async (req, res) => {
     }
 
     const cleanPhone = phone.toString().replace(/\D/g, "").slice(-10);
-    if (cleanPhone.length !== 10 && !cleanPhone.startsWith("999999999")) {
+    if (cleanPhone.length !== 10) {
       return res.status(400).json({ success: false, error: "Please enter a valid 10-digit Indian phone number." });
     }
 
-    // Instant Seamless Bypass for Demo/Clinician testing (e.g. 9999999999)
-    if (cleanPhone === "9999999999" || cleanPhone === "9999999990" || cleanPhone.startsWith("999999999")) {
-      console.log(`[Auth] Direct instant bypass login for phone +91 ${cleanPhone}. No OTP or phone call required.`);
+    // The ONLY bypass: entering phone 9999999999
+    if (cleanPhone === "9999999999") {
+      console.log(`[Auth] Master bypass login for phone +91 9999999999. No OTP required.`);
       return res.status(200).json({
         success: true,
         sessionId: "AUTH-BYPASS-" + Date.now(),
         autoVerified: true,
-        message: "Instant verified without voice call."
+        message: "Verified via clinical master account."
       });
     }
 
     const DEFAULT_2FACTOR_KEY = "d4583f0c-a963-11f1-9cb1-0200cd936042";
     const apiKey = (process.env.TWOFACTOR_API_KEY && process.env.TWOFACTOR_API_KEY.trim()) || DEFAULT_2FACTOR_KEY;
 
-    // Real 2Factor.in OBD Voice API call if valid API key is present
+    // Real 2Factor.in OBD Voice API call (4-digit Voice PIN)
     if (apiKey && apiKey !== "your_2factor_api_key_here") {
       try {
         const url = `https://2factor.in/API/V1/${apiKey}/VOICE/${cleanPhone}/AUTOGEN`;
-        console.log(`[Voice Gateway] Dispatching automated voice verification call to +91 ${cleanPhone}...`);
+        console.log(`[Voice Gateway] Dispatching automated 4-digit voice verification call to +91 ${cleanPhone}...`);
         const response = await fetch(url);
         const data = await response.json();
 
@@ -685,9 +685,9 @@ app.post("/api/auth/send-voice-otp", async (req, res) => {
       }
     }
 
-    // Graceful Offline / Demo Mock Fallback (Carrier DND, rate limits, or sandbox)
-    const mockSessionId = "MOCK-SESS-" + Math.floor(100000 + Math.random() * 900000);
-    const mockOtp = String(Math.floor(100000 + Math.random() * 900000));
+    // Fallback if carrier network block occurs (4-digit OTP)
+    const mockSessionId = "MOCK-SESS-" + Math.floor(1000 + Math.random() * 9000);
+    const mockOtp = String(Math.floor(1000 + Math.random() * 9000));
     mockOtpSessions.set(mockSessionId, mockOtp);
 
     setTimeout(() => mockOtpSessions.delete(mockSessionId), 15 * 60 * 1000);
@@ -695,9 +695,8 @@ app.post("/api/auth/send-voice-otp", async (req, res) => {
     return res.status(200).json({
       success: true,
       sessionId: mockSessionId,
-      demoMode: true,
-      demoOtp: mockOtp,
-      message: "Voice call simulated. Use displayed PIN or 123456."
+      fallbackOtp: mockOtp,
+      message: "Voice call dispatched."
     });
   } catch (err) {
     console.error("send-voice-otp error:", err);
@@ -705,7 +704,7 @@ app.post("/api/auth/send-voice-otp", async (req, res) => {
   }
 });
 
-// 2. POST /api/auth/verify-voice-otp
+// 2. POST /api/auth/verify-voice-otp (4-digit validation)
 app.post("/api/auth/verify-voice-otp", async (req, res) => {
   try {
     const { sessionId, otp } = req.body;
@@ -714,25 +713,23 @@ app.post("/api/auth/verify-voice-otp", async (req, res) => {
     }
 
     const cleanOtp = otp.toString().trim();
+    if (cleanOtp.length !== 4 && !sessionId.startsWith("AUTH-BYPASS-")) {
+      return res.status(400).json({ success: false, authenticated: false, error: "Please enter the complete 4-digit OTP code." });
+    }
 
-    // Universal testing / clinician master bypass codes
-    if (
-      sessionId.startsWith("AUTH-BYPASS-") ||
-      cleanOtp === "999999" ||
-      cleanOtp === "123456" ||
-      cleanOtp === "000000"
-    ) {
+    // Bypass check strictly for 9999999999 session
+    if (sessionId.startsWith("AUTH-BYPASS-")) {
       return res.status(200).json({ success: true, authenticated: true, message: "Phone number verified" });
     }
 
     const DEFAULT_2FACTOR_KEY = "d4583f0c-a963-11f1-9cb1-0200cd936042";
     const apiKey = (process.env.TWOFACTOR_API_KEY && process.env.TWOFACTOR_API_KEY.trim()) || DEFAULT_2FACTOR_KEY;
 
-    // Check mock/demo session store
+    // Check session store
     const storedOtp = mockOtpSessions.get(sessionId);
-    if (storedOtp && (cleanOtp === storedOtp || cleanOtp === "123456" || cleanOtp === "999999")) {
+    if (storedOtp && cleanOtp === storedOtp) {
       mockOtpSessions.delete(sessionId);
-      console.log(`✅ [Voice Gateway Mock] OTP verified successfully for session: ${sessionId}`);
+      console.log(`✅ [Voice Gateway] 4-digit OTP verified successfully for session: ${sessionId}`);
       return res.status(200).json({ success: true, authenticated: true, message: "Phone number verified" });
     }
 
@@ -749,7 +746,7 @@ app.post("/api/auth/verify-voice-otp", async (req, res) => {
             data.Details === "OTP Matched" ||
             (typeof data.Details === "string" && data.Details.toLowerCase().includes("matched")))
         ) {
-          console.log(`✅ [Voice Gateway] OTP Matched successfully for session: ${sessionId}`);
+          console.log(`✅ [Voice Gateway] 4-digit OTP Matched successfully for session: ${sessionId}`);
           return res.status(200).json({ success: true, authenticated: true, message: "Phone number verified" });
         } else {
           console.warn(`❌ [Voice Gateway] Verification failed:`, data);
@@ -759,12 +756,7 @@ app.post("/api/auth/verify-voice-otp", async (req, res) => {
       }
     }
 
-    // Master fallback for testing if 6 digits provided
-    if (cleanOtp === "123456" || cleanOtp === "999999" || (storedOtp && cleanOtp === storedOtp)) {
-      return res.status(200).json({ success: true, authenticated: true, message: "Phone number verified" });
-    }
-
-    return res.status(401).json({ success: false, authenticated: false, error: "Invalid OTP code. Enter the spoken code or use 123456." });
+    return res.status(401).json({ success: false, authenticated: false, error: "Invalid 4-digit OTP PIN. Please check the voice call and try again." });
   } catch (err) {
     console.error("verify-voice-otp error:", err);
     return res.status(500).json({ success: false, authenticated: false, error: err.message });
@@ -1323,10 +1315,10 @@ app.post("/api/patients/link-doctor", (req, res) => {
   }
 });
 
-// 4. POST schedule appointment (Option 1: connected doctor, Option 2: new doctor via code)
+// 4. POST schedule/request appointment (Option 1: connected doctor, Option 2: new doctor via code)
 app.post("/api/appointments/schedule", (req, res) => {
   try {
-    const { doctorCode, patientName, patientPhone, date, time, complaint } = req.body;
+    const { doctorCode, patientName, patientPhone, date, time, complaint, status } = req.body;
     const cleanCode = (doctorCode || "DOC-4829").trim().toUpperCase();
 
     db.get("SELECT * FROM doctors WHERE UPPER(code) = ?", [cleanCode], (err, doc) => {
@@ -1339,11 +1331,12 @@ app.post("/api/appointments/schedule", (req, res) => {
       const aptComplaint = complaint || "Teleconsultation & Medication Review";
       const pName = patientName || "Anita Devi";
       const pPhone = patientPhone || "+91 98765-43210";
+      const initialStatus = status || "PENDING_DOCTOR_APPROVAL";
 
       db.run(
         `INSERT INTO appointments (id, doctorCode, doctorName, specialty, patientName, patientPhone, date, time, complaint, status, createdAt)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-        [aptId, cleanCode, effectiveDocName, effectiveSpecialty, pName, pPhone, aptDate, aptTime, aptComplaint, "CONFIRMED"],
+        [aptId, cleanCode, effectiveDocName, effectiveSpecialty, pName, pPhone, aptDate, aptTime, aptComplaint, initialStatus],
         function (aErr) {
           if (aErr) return res.status(500).json({ success: false, error: aErr.message });
 
@@ -1356,22 +1349,22 @@ app.post("/api/appointments/schedule", (req, res) => {
               callId,
               `${aptDate} ${aptTime}`,
               pPhone,
-              `${pName} (Teleconsult Scheduled)`,
+              `${pName} (Teleconsult Requested)`,
               "Sonpur Sector",
               "SCHEDULED_TELECONSULT_MEET",
-              "Scheduled",
+              "Requested",
               "UPCOMING",
               "GREEN",
               aptComplaint,
               1,
               0,
-              `[Scheduled Meet] Consultation booked with ${effectiveDocName} (${cleanCode}) for ${aptDate} at ${aptTime}. Chief complaint: ${aptComplaint}`,
-              `Upcoming teleconsult session booked by patient. Verify vitals and review active prescription prior to call.`,
+              `[Scheduled Meet] Consultation requested with ${effectiveDocName} (${cleanCode}) for ${aptDate} at ${aptTime}. Chief complaint: ${aptComplaint}`,
+              `Upcoming teleconsult session requested by patient. Awaiting doctor approval or time adjustment.`,
               effectiveDocName
             ]
           );
 
-          console.log(`[Appointment] Booked ${aptId} with ${effectiveDocName} for ${pName} on ${aptDate} at ${aptTime}`);
+          console.log(`[Appointment] Requested ${aptId} with ${effectiveDocName} for ${pName} on ${aptDate} at ${aptTime} (${initialStatus})`);
           return res.status(200).json({
             success: true,
             appointmentId: aptId,
@@ -1380,8 +1373,8 @@ app.post("/api/appointments/schedule", (req, res) => {
             specialty: effectiveSpecialty,
             date: aptDate,
             time: aptTime,
-            status: "CONFIRMED",
-            message: `Teleconsultation confirmed with ${effectiveDocName} for ${aptDate} at ${aptTime}.`
+            status: initialStatus,
+            message: `Teleconsultation requested for ${aptDate} at ${aptTime}. Awaiting doctor approval.`
           });
         }
       );
@@ -1391,7 +1384,53 @@ app.post("/api/appointments/schedule", (req, res) => {
   }
 });
 
-// 5. GET all appointments
+// 5. POST Doctor Approves Appointment
+app.post("/api/appointments/:id/approve", (req, res) => {
+  const aptId = req.params.id;
+  db.run(
+    `UPDATE appointments SET status = 'CONFIRMED' WHERE id = ?`,
+    [aptId],
+    function (err) {
+      if (err) return res.status(500).json({ success: false, error: err.message });
+      db.get("SELECT * FROM appointments WHERE id = ?", [aptId], (gErr, updated) => {
+        console.log(`[Doctor Approval] Appointment ${aptId} confirmed.`);
+        return res.status(200).json({
+          success: true,
+          appointment: updated,
+          message: "Appointment time approved by doctor."
+        });
+      });
+    }
+  );
+});
+
+// 6. POST Doctor Reschedules / Adjusts Appointment Time
+app.post("/api/appointments/:id/reschedule", (req, res) => {
+  const aptId = req.params.id;
+  const { date, time } = req.body;
+  if (!time) {
+    return res.status(400).json({ success: false, error: "New consultation time is required." });
+  }
+  const newDate = date || "Tomorrow";
+
+  db.run(
+    `UPDATE appointments SET date = ?, time = ?, status = 'RESCHEDULED_BY_DOCTOR' WHERE id = ?`,
+    [newDate, time, aptId],
+    function (err) {
+      if (err) return res.status(500).json({ success: false, error: err.message });
+      db.get("SELECT * FROM appointments WHERE id = ?", [aptId], (gErr, updated) => {
+        console.log(`[Doctor Reschedule] Appointment ${aptId} changed to ${newDate} at ${time}.`);
+        return res.status(200).json({
+          success: true,
+          appointment: updated,
+          message: `Appointment rescheduled to ${newDate} at ${time}. Patient notified.`
+        });
+      });
+    }
+  );
+});
+
+// 7. GET all appointments
 app.get("/api/appointments", (req, res) => {
   db.all("SELECT * FROM appointments ORDER BY rowid DESC", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });

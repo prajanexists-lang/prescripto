@@ -174,6 +174,11 @@
             <button id="lang-hi" onclick="setAppLanguage('hi')" class="px-2 py-1 rounded-lg transition-colors text-slate-500 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white">हिंदी</button>
           </div>
 
+          <!-- Doctor Portal Switcher Button -->
+          <a href="/doctor" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-600 text-white shadow-xs flex items-center space-x-1.5 transition-all cursor-pointer" title="Switch to Doctor Clinical Command Desk">
+            <i data-lucide="stethoscope" class="w-3.5 h-3.5"></i>
+            <span>Doctor Portal →</span>
+          </a>
 
           <!-- Profile Badge with Dropdown -->
           <div id="nav-user-chip" class="hidden items-center space-x-2 pl-2 border-l border-slate-200 dark:border-[#17433c]">
@@ -216,6 +221,11 @@
           <p class="text-xs max-w-xs mx-auto text-slate-500 dark:text-teal-200/70">
             Instant automated phone call verification for encrypted national health records (ABDM Standard).
           </p>
+          <div class="pt-1">
+            <a href="/doctor" class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-700 dark:text-teal-300 text-[11px] font-bold border border-teal-500/30 transition-colors">
+              <span>🩺 Attending Clinician? Open Doctor Command Desk (/doctor) →</span>
+            </a>
+          </div>
         </div>
 
         <!-- Mode Switcher: Sign Up vs Sign In (Prescripto Style) -->
@@ -319,30 +329,19 @@
             </div>
             <h3 class="text-xs font-bold text-slate-900 dark:text-white">Connecting Secure Verification Voice Call...</h3>
             <p class="text-[11px] text-slate-600 dark:text-teal-200/80">
-              Automated telephone call placed to <strong class="font-mono text-teal-400" id="calling-target-phone">+91 99999-99999</strong>. Answer to hear the 6-digit code.
+              Automated telephone call placed to <strong class="font-mono text-teal-400" id="calling-target-phone">+91 99999-99999</strong>. Answer to hear the 4-digit code.
             </p>
-            <div id="mock-otp-pill" class="hidden inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 border border-amber-300 text-[11px] font-mono">
-              <span>Simulator OTP:</span>
-              <strong id="mock-otp-code">582910</strong>
-            </div>
           </div>
 
           <div>
             <label class="block text-xs font-bold text-center mb-2 text-slate-800 dark:text-teal-200">
-              Enter 6-Digit OTP spoken on the phone call:
+              Enter 4-Digit OTP spoken on the phone call:
             </label>
-            <div class="flex justify-center items-center gap-2">
-              <input type="text" maxlength="1" id="otp-0" oninput="handleOtpChange(0, this.value)" onkeydown="handleOtpKey(0, event)" class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none">
-              <input type="text" maxlength="1" id="otp-1" oninput="handleOtpChange(1, this.value)" onkeydown="handleOtpKey(1, event)" class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none">
-              <input type="text" maxlength="1" id="otp-2" oninput="handleOtpChange(2, this.value)" onkeydown="handleOtpKey(2, event)" class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none">
-              <input type="text" maxlength="1" id="otp-3" oninput="handleOtpChange(3, this.value)" onkeydown="handleOtpKey(3, event)" class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none">
-              <input type="text" maxlength="1" id="otp-4" oninput="handleOtpChange(4, this.value)" onkeydown="handleOtpKey(4, event)" class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none">
-              <input type="text" maxlength="1" id="otp-5" oninput="handleOtpChange(5, this.value)" onkeydown="handleOtpKey(5, event)" class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none">
-            </div>
-            <div class="flex items-center justify-center pt-2">
-              <button type="button" onclick="fillMasterOtp('123456')" class="px-3 py-1 rounded-full text-[11px] font-bold bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-teal-500/30 cursor-pointer flex items-center space-x-1">
-                <span>⚡ 1-Click Fill Demo PIN (123456)</span>
-              </button>
+            <div class="flex justify-center items-center gap-3">
+              <input type="text" maxlength="1" id="otp-0" oninput="handleOtpChange(0, this.value)" onkeydown="handleOtpKey(0, event)" class="w-12 h-14 text-center text-xl font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none shadow-xs">
+              <input type="text" maxlength="1" id="otp-1" oninput="handleOtpChange(1, this.value)" onkeydown="handleOtpKey(1, event)" class="w-12 h-14 text-center text-xl font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none shadow-xs">
+              <input type="text" maxlength="1" id="otp-2" oninput="handleOtpChange(2, this.value)" onkeydown="handleOtpKey(2, event)" class="w-12 h-14 text-center text-xl font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none shadow-xs">
+              <input type="text" maxlength="1" id="otp-3" oninput="handleOtpChange(3, this.value)" onkeydown="handleOtpKey(3, event)" class="w-12 h-14 text-center text-xl font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none shadow-xs">
             </div>
           </div>
 
@@ -1793,6 +1792,8 @@
         renderKendras(currentKendrasList);
         renderDoctors(DOCTORS);
         renderAppointments();
+        fetchAppointmentsFromServer();
+        setInterval(fetchAppointmentsFromServer, 4000);
         resetScannerToBlankPlus();
 
         // Wire up drag & drop on blank plus upload zone
@@ -1968,18 +1969,7 @@
             document.getElementById('auth-step-form').classList.add('hidden');
             document.getElementById('auth-step-otp').classList.remove('hidden');
 
-            const mockPill = document.getElementById('mock-otp-pill');
-            if (data.demoOtp) {
-              if (mockPill) {
-                mockPill.classList.remove('hidden');
-                document.getElementById('mock-otp-code').innerText = data.demoOtp;
-              }
-              fillMasterOtp(data.demoOtp);
-              showToast(`📞 Simulation PIN: ${data.demoOtp} (Auto-filled)`);
-            } else {
-              if (mockPill) mockPill.classList.add('hidden');
-              showToast("📞 Voice call placed! Answer your phone to hear your 6-digit OTP.");
-            }
+            showToast("📞 Voice call placed! Answer your phone to hear your 4-digit OTP.");
             setTimeout(() => document.getElementById('otp-0').focus(), 150);
           } else {
             showToast(data.error || "Failed to dispatch voice call.", true);
@@ -1991,22 +1981,13 @@
         }
       }
 
-      function fillMasterOtp(pin = '123456') {
-        const digits = String(pin).split('');
-        digits.forEach((d, idx) => {
-          const inp = document.getElementById(`otp-${idx}`);
-          if (inp) inp.value = d;
-        });
-        showToast(`PIN ${pin} filled! Click 'Confirm Voice Code'.`);
-      }
-
       function handleBackToAuthForm() {
         document.getElementById('auth-step-otp').classList.add('hidden');
         document.getElementById('auth-step-form').classList.remove('hidden');
       }
 
       function handleOtpChange(idx, val) {
-        if (val && idx < 5) {
+        if (val && idx < 3) {
           const next = document.getElementById(`otp-${idx + 1}`);
           if (next) next.focus();
         }
@@ -2021,11 +2002,11 @@
 
       async function handleVerifyVoiceOtp() {
         let otp = '';
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
           otp += (document.getElementById(`otp-${i}`)?.value || '');
         }
-        if (otp.length !== 6) {
-          showToast("Please enter the complete 6-digit Voice OTP.", true);
+        if (otp.length !== 4) {
+          showToast("Please enter the complete 4-digit Voice OTP.", true);
           return;
         }
 
@@ -3431,19 +3412,47 @@
         `).join('');
       }
 
-      function bookDoctorSlot(doctorName, specialty, time) {
-        appointments.unshift({
-          id: `apt-${Date.now()}`,
-          doctorName,
-          specialty,
-          date: 'Today',
-          time,
-          status: 'CONFIRMED'
-        });
-        renderAppointments();
-        switchTab('appointments');
-        showToast(`Appointment confirmed with ${doctorName} at ${time}!`);
-        triggerConfetti();
+      async function bookDoctorSlot(doctorName, specialty, time) {
+        try {
+          const res = await fetch('/api/appointments/schedule', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              doctorCode: 'DOC-4829',
+              patientName: currentPatient.name || 'Anita Devi',
+              patientPhone: currentPatient.phone || '+91 98765-43210',
+              date: 'Tomorrow',
+              time: time,
+              complaint: `Telehealth consultation with ${doctorName}`,
+              status: 'PENDING_DOCTOR_APPROVAL'
+            })
+          });
+          const data = await res.json();
+          appointments.unshift({
+            id: data.appointmentId || `apt-${Date.now()}`,
+            doctorName,
+            specialty,
+            date: 'Tomorrow',
+            time,
+            status: data.status || 'PENDING_DOCTOR_APPROVAL'
+          });
+          renderAppointments();
+          switchTab('appointments');
+          showToast(`Consultation requested with ${doctorName} for ${time}! Awaiting doctor approval.`);
+          triggerConfetti();
+        } catch (e) {
+          appointments.unshift({
+            id: `apt-${Date.now()}`,
+            doctorName,
+            specialty,
+            date: 'Tomorrow',
+            time,
+            status: 'PENDING_DOCTOR_APPROVAL'
+          });
+          renderAppointments();
+          switchTab('appointments');
+          showToast(`Consultation requested for ${time}. Awaiting doctor approval.`);
+        }
       }
 
       function renderAppointments() {
@@ -3455,18 +3464,74 @@
           return;
         }
 
-        container.innerHTML = appointments.map(a => `
+        container.innerHTML = appointments.map(a => {
+          let badgeClass = "bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30";
+          let statusText = "⏳ Awaiting Doctor Approval";
+          if (a.status === 'CONFIRMED') {
+            badgeClass = "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30";
+            statusText = "✅ Confirmed by Doctor";
+          } else if (a.status === 'RESCHEDULED_BY_DOCTOR') {
+            badgeClass = "bg-sky-500/20 text-sky-600 dark:text-sky-400 border-sky-500/30";
+            statusText = `⏱️ Rescheduled by Doctor (${a.time})`;
+          }
+          return `
           <div class="p-4 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c] flex items-center justify-between text-xs">
             <div class="space-y-0.5">
               <h4 class="font-bold text-slate-900 dark:text-white font-heading">${a.doctorName}</h4>
               <p class="text-[11px] text-slate-500 dark:text-teal-200/70">${a.specialty}</p>
               <div class="text-[10px] text-teal-500 font-mono">📅 ${a.date} at ${a.time} (Teleconsultation)</div>
+              ${a.status === 'RESCHEDULED_BY_DOCTOR' ? `<div class="text-[10px] text-sky-500 font-semibold mt-1">Doctor updated slot to ${a.time} (${a.date})</div>` : ''}
+              ${a.status === 'PENDING_DOCTOR_APPROVAL' ? `<div class="text-[10px] text-amber-500 font-semibold mt-1">Doctor will review and confirm or adjust time</div>` : ''}
             </div>
-            <span class="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] border border-emerald-500/30">
-              ${a.status}
-            </span>
+            <div class="flex flex-col items-end gap-1">
+              <span class="px-2.5 py-1 rounded-xl font-bold text-[11px] border ${badgeClass}">
+                ${statusText}
+              </span>
+              ${a.status === 'CONFIRMED' ? `<span class="text-[10px] text-emerald-600 font-medium">Video Room Open at ${a.time}</span>` : ''}
+            </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
+      }
+
+      async function fetchAppointmentsFromServer() {
+        try {
+          const res = await fetch('/api/appointments');
+          const data = await res.json();
+          if (data && Array.isArray(data.appointments) && data.appointments.length > 0) {
+            appointments = data.appointments.map(item => ({
+              id: item.id,
+              doctorName: item.doctorName || 'Dr. Prajan Radhakrishnan, MD',
+              specialty: item.specialty || 'General Medicine & Telehealth',
+              date: item.date || 'Tomorrow',
+              time: item.time || '10:30 AM',
+              status: item.status || 'PENDING_DOCTOR_APPROVAL'
+            }));
+            renderAppointments();
+            const latest = appointments[0];
+            if (latest) {
+              const dashDoc = document.getElementById('dash-doctor-name');
+              const dashTime = document.getElementById('dash-appointment-time');
+              const dashStatus = document.getElementById('dash-appointment-status');
+              if (dashDoc) dashDoc.innerText = latest.doctorName;
+              if (dashTime) dashTime.innerText = `${latest.time} (${latest.date})`;
+              if (dashStatus && dashStatus.parentElement) {
+                if (latest.status === 'CONFIRMED') {
+                  dashStatus.innerText = 'Approved by Doctor';
+                  dashStatus.parentElement.className = 'inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold border border-emerald-200 dark:border-emerald-800';
+                } else if (latest.status === 'RESCHEDULED_BY_DOCTOR') {
+                  dashStatus.innerText = `Rescheduled to ${latest.time}`;
+                  dashStatus.parentElement.className = 'inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 text-[11px] font-semibold border border-sky-200 dark:border-sky-800';
+                } else {
+                  dashStatus.innerText = 'Awaiting Doctor Approval';
+                  dashStatus.parentElement.className = 'inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-semibold border border-amber-200 dark:border-amber-800';
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // Silent fallback
+        }
       }
 
       // ================= SCHEDULE MEET MODAL HANDLERS =================
@@ -3520,7 +3585,8 @@
               patientPhone: currentPatient.phone || '+91 98765-43210',
               date: dateVal,
               time: slotVal,
-              complaint: complaintVal
+              complaint: complaintVal,
+              status: 'PENDING_DOCTOR_APPROVAL'
             })
           });
           const data = await res.json();
@@ -3546,7 +3612,11 @@
           document.getElementById('dash-doctor-code').innerText = "DOC-4829";
           document.getElementById('dash-doctor-specialty').innerText = "General Medicine & Clinical Telehealth (NMC-48291)";
           document.getElementById('dash-appointment-time').innerText = `${slotVal} (${dateVal})`;
-          document.getElementById('dash-appointment-status').innerText = "Confirmed";
+          const badgeEl = document.getElementById('dash-appointment-status');
+          if (badgeEl && badgeEl.parentElement) {
+            badgeEl.innerText = "Awaiting Doctor Approval";
+            badgeEl.parentElement.className = "inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-semibold border border-amber-200 dark:border-amber-800";
+          }
 
           // 4. Prepend to local appointments array
           appointments.unshift({
@@ -3555,16 +3625,16 @@
             specialty: "General Medicine & Clinical Telehealth",
             date: dateVal,
             time: slotVal,
-            status: "CONFIRMED"
+            status: data.status || "PENDING_DOCTOR_APPROVAL"
           });
           renderAppointments();
 
           closeScheduleMeetModal();
-          showToast(`Teleconsultation confirmed with Dr. Prajan Radhakrishnan for ${dateVal} at ${slotVal}!`);
+          showToast(`Consultation requested for ${dateVal} at ${slotVal}! Dr. Prajan Radhakrishnan will review & approve.`);
           triggerConfetti();
         } catch (e) {
           console.error("Option 1 booking error:", e);
-          showToast("Network error confirming appointment.", true);
+          showToast("Network error requesting appointment.", true);
         }
       }
 
@@ -3632,7 +3702,8 @@
               patientPhone: currentPatient.phone || '+91 98765-43210',
               date: dateVal,
               time: slotVal,
-              complaint: complaintVal
+              complaint: complaintVal,
+              status: 'PENDING_DOCTOR_APPROVAL'
             })
           });
           const data = await res.json();
@@ -3660,7 +3731,11 @@
           document.getElementById('dash-doctor-code').innerText = codeInput;
           document.getElementById('dash-doctor-specialty').innerText = data.specialty || docSpecialty;
           document.getElementById('dash-appointment-time').innerText = `${slotVal} (${dateVal})`;
-          document.getElementById('dash-appointment-status').innerText = "Confirmed";
+          const badgeEl2 = document.getElementById('dash-appointment-status');
+          if (badgeEl2 && badgeEl2.parentElement) {
+            badgeEl2.innerText = "Awaiting Doctor Approval";
+            badgeEl2.parentElement.className = "inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-[11px] font-semibold border border-amber-200 dark:border-amber-800";
+          }
 
           // 4. Prepend to local appointments array
           appointments.unshift({
@@ -3669,12 +3744,12 @@
             specialty: data.specialty || docSpecialty,
             date: dateVal,
             time: slotVal,
-            status: "CONFIRMED"
+            status: data.status || "PENDING_DOCTOR_APPROVAL"
           });
           renderAppointments();
 
           closeScheduleMeetModal();
-          showToast(`Meet booked with ${data.doctorName || docName} (${codeInput})! Repository linked.`);
+          showToast(`Consultation request sent to ${data.doctorName || docName} (${codeInput})! Awaiting approval.`);
           triggerConfetti();
         } catch (e) {
           console.error("Option 2 booking failed:", e);

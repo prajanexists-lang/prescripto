@@ -1068,6 +1068,14 @@
           📋 <span>Copy</span>
         </button>
       </div>
+      <a href="/" target="_blank" style="text-decoration: none;">
+        <button class="btn-outline" style="color: var(--primary); border-color: var(--primary-border); font-weight: 700; background: var(--primary-light);">
+          👤 Patient Portal →
+        </button>
+      </a>
+      <button class="btn-outline" onclick="openDoctorWhatsAppModal()" style="color: #047857; border-color: #6ee7b7; font-weight: 700; background: #ecfdf5;" title="Send clinical dosage reminders and dietary alerts to patients via WhatsApp">
+        💬 WhatsApp Reminders
+      </button>
       <button class="btn-outline" onclick="toggleDoctorTheme()" id="docThemeBtn" title="Toggle Prescripto Dark/Light Mode">🌓 Dark Mode</button>
       <button class="btn-outline" onclick="lockDoctorDesk()" title="Lock doctor workstation" style="color: #ef4444; border-color: #fca5a5;">🔒 Lock Desk</button>
       <button class="btn-outline" onclick="fetchDeskData()" title="Refresh now">🔄 Refresh Worklist</button>
@@ -1094,6 +1102,11 @@
       <span>👥</span>
       <span>Patient Directory & Closed-Loop Panel</span>
       <span id="badgePatientsCount" style="background: #10b981; color: white; font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 10px; margin-left: 4px;">5 PATIENTS</span>
+    </button>
+    <button id="viewBtnAppointments" onclick="switchDoctorView('appointments')" class="btn-outline view-btn" style="padding: 8px 18px; border-radius: 8px; position: relative;">
+      <span>📅</span>
+      <span>Appointment Requests & Approvals</span>
+      <span id="badgeAppointmentsCount" style="background: #0284c7; color: white; font-size: 10px; font-weight: 800; padding: 1px 7px; border-radius: 10px; margin-left: 4px;">0 NEW</span>
     </button>
   </div>
 
@@ -1517,7 +1530,204 @@
       </div>
     </div>
   </div>
-  <!-- /patientDirectoryView -->
+  <!-- ================= APPOINTMENT REQUESTS & APPROVALS VIEW ================= -->
+  <div id="appointmentsDeskView" style="display: none;">
+    <!-- Metric Overview Cards -->
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 20px;">
+      <div class="stat-box stat-teal">
+        <div class="stat-icon stat-icon-teal">📅</div>
+        <div class="stat-info">
+          <div class="stat-number" id="metricTotalAppointments">0</div>
+          <div class="stat-label">Total Booking Requests</div>
+        </div>
+      </div>
+      <div class="stat-box stat-amber">
+        <div class="stat-icon stat-icon-amber">⏳</div>
+        <div class="stat-info">
+          <div class="stat-number" id="metricPendingAppointments" style="color: var(--amber);">0</div>
+          <div class="stat-label">Awaiting Doctor Approval</div>
+        </div>
+      </div>
+      <div class="stat-box stat-green">
+        <div class="stat-icon stat-icon-green">✅</div>
+        <div class="stat-info">
+          <div class="stat-number" id="metricConfirmedAppointments" style="color: var(--green);">0</div>
+          <div class="stat-label">Approved & Confirmed</div>
+        </div>
+      </div>
+      <div class="stat-box" style="border-left: 4px solid var(--blue); background: linear-gradient(to right, #f0f9ff, #ffffff 60%);">
+        <div class="stat-icon" style="background: #e0f2fe; color: var(--blue);">⏱️</div>
+        <div class="stat-info">
+          <div class="stat-number" id="metricRescheduledAppointments" style="color: var(--blue);">0</div>
+          <div class="stat-label">Doctor Adjusted / Rescheduled</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Header -->
+    <div class="card" style="margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div>
+        <h2 style="margin: 0; font-size: 16px; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+          <span>📅 Patient Teleconsultation Requests & Slot Approvals</span>
+          <span class="badge" style="background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary-border); font-size: 11px;">
+            Doctor Control Desk • DOC-4829
+          </span>
+        </h2>
+        <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted);">
+          When patients request a consultation slot from the portal, approve their requested time or adjust to a suitable slot. Changes reflect live on the patient's dashboard.
+        </p>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+        <button class="btn-outline" onclick="filterAppointmentsStatus('ALL')" id="filterAptAll" style="font-size: 12px; padding: 6px 12px; font-weight: 700; background: var(--primary-light); color: var(--primary);">All</button>
+        <button class="btn-outline" onclick="filterAppointmentsStatus('PENDING_DOCTOR_APPROVAL')" id="filterAptPending" style="font-size: 12px; padding: 6px 12px;">⏳ Pending</button>
+        <button class="btn-outline" onclick="filterAppointmentsStatus('CONFIRMED')" id="filterAptConfirmed" style="font-size: 12px; padding: 6px 12px;">✅ Approved</button>
+        <button class="btn-outline" onclick="filterAppointmentsStatus('RESCHEDULED_BY_DOCTOR')" id="filterAptRescheduled" style="font-size: 12px; padding: 6px 12px;">⏱️ Rescheduled</button>
+        <button class="btn-outline" onclick="fetchDoctorAppointments()" style="font-size: 12px; padding: 6px 14px;">🔄 Refresh Slots</button>
+      </div>
+    </div>
+
+    <!-- Appointment Items Table / List -->
+    <div id="appointmentsListContainer">
+      <div class="card" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <span class="spinner" style="display:inline-block; vertical-align:middle; margin-right:8px;"></span>
+        Loading Appointment Requests...
+      </div>
+    </div>
+  </div>
+  <!-- /appointmentsDeskView -->
+
+  <!-- ================= DOCTOR RESCHEDULE / ADJUST APPOINTMENT MODAL ================= -->
+  <div id="doctorRescheduleModal" class="modal-overlay">
+    <div class="modal-window" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 style="color: var(--blue);">⏱️ Reschedule / Adjust Consultation Slot</h3>
+        <button class="modal-close-btn" onclick="closeDoctorRescheduleModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom: 14px; background: #f0f9ff; padding: 12px; border-radius: 8px; border: 1px solid #bae6fd;">
+          <div style="font-size: 11px; color: #0369a1; text-transform: uppercase; font-weight: 700;">Patient Request</div>
+          <div style="font-size: 14px; font-weight: 700; color: #0c4a6e;" id="reschedulePatientName">Anita Devi</div>
+          <div style="font-size: 12px; color: #0284c7;" id="rescheduleCurrentSlot">Requested: Tomorrow at 10:30 AM</div>
+          <input type="hidden" id="rescheduleAptId">
+          <input type="hidden" id="reschedulePatientPhone">
+        </div>
+
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+          Select Proposed Date:
+        </label>
+        <select id="rescheduleDateSelect" class="form-control" style="width: 100%; font-size: 13px; padding: 8px 10px; margin-bottom: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main);">
+          <option value="Today">Today (Same Day Urgent)</option>
+          <option value="Tomorrow" selected>Tomorrow</option>
+          <option value="Day After Tomorrow">Day After Tomorrow</option>
+          <option value="Next Monday">Next Monday (Morning Session)</option>
+        </select>
+
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+          Select Clinician Slot:
+        </label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px;">
+          <button type="button" class="btn-outline slot-pick-btn" onclick="pickSlotTime('09:30 AM', this)" style="padding: 6px; font-size: 12px; justify-content: center;">09:30 AM</button>
+          <button type="button" class="btn-outline slot-pick-btn" onclick="pickSlotTime('10:30 AM', this)" style="padding: 6px; font-size: 12px; justify-content: center;">10:30 AM</button>
+          <button type="button" class="btn-outline slot-pick-btn" onclick="pickSlotTime('11:45 AM', this)" style="padding: 6px; font-size: 12px; justify-content: center;">11:45 AM</button>
+          <button type="button" class="btn-outline slot-pick-btn" onclick="pickSlotTime('02:30 PM', this)" style="padding: 6px; font-size: 12px; justify-content: center;">02:30 PM</button>
+          <button type="button" class="btn-outline slot-pick-btn" onclick="pickSlotTime('04:00 PM', this)" style="padding: 6px; font-size: 12px; justify-content: center;">04:00 PM</button>
+          <button type="button" class="btn-outline slot-pick-btn" onclick="pickSlotTime('05:30 PM', this)" style="padding: 6px; font-size: 12px; justify-content: center;">05:30 PM</button>
+        </div>
+
+        <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+          Or Type Custom Time:
+        </label>
+        <input type="text" id="rescheduleTimeCustom" class="form-control" placeholder="e.g. 03:15 PM" value="02:30 PM" style="width: 100%; font-size: 13px; padding: 8px 10px; margin-bottom: 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main);">
+
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer;">
+          <input type="checkbox" id="rescheduleSendWhatsAppCheck" checked>
+          <span>Send automated WhatsApp confirmation to patient about the adjusted time</span>
+        </label>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeDoctorRescheduleModal()">Cancel</button>
+        <button class="btn-teal" onclick="submitDoctorReschedule()" style="background: var(--blue);">Confirm New Slot & Notify</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= DOCTOR WHATSAPP REMINDERS MODAL ================= -->
+  <div id="doctorWhatsAppModal" class="modal-overlay">
+    <div class="modal-window" style="max-width: 580px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #065f46, #047857); color: white;">
+        <h3 style="color: white; display: flex; align-items: center; gap: 8px;">
+          <span>💬 Doctor WhatsApp Reminders & Clinical Alerts</span>
+        </h3>
+        <button class="modal-close-btn" style="color: white;" onclick="closeDoctorWhatsAppModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin: 0 0 14px 0; font-size: 12px; color: var(--text-muted);">
+          Dispatch prescription dosage timings, dietary interactions (e.g. avoid tea with iron), appointment reminders, and follow-up alerts directly to patient WhatsApp.
+        </p>
+
+        <!-- Recipient details -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div>
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Patient Name:</label>
+            <input type="text" id="docWaPatientName" class="form-control" value="Anita Devi" style="width: 100%; font-size: 12px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Phone Number (+91):</label>
+            <input type="text" id="docWaPhone" class="form-control" value="9876543210" style="width: 100%; font-size: 12px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main);">
+          </div>
+        </div>
+
+        <!-- Quick Patient Picker -->
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Quick Select Assigned Patient:</label>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <button type="button" class="btn-outline" onclick="selectWaRecipient('Anita Devi', '9876543210')" style="font-size: 11px; padding: 3px 8px;">Anita Devi</button>
+            <button type="button" class="btn-outline" onclick="selectWaRecipient('Ramesh Kumar', '9811223344')" style="font-size: 11px; padding: 3px 8px;">Ramesh Kumar</button>
+            <button type="button" class="btn-outline" onclick="selectWaRecipient('Sunita Bai', '9700112233')" style="font-size: 11px; padding: 3px 8px;">Sunita Bai</button>
+            <button type="button" class="btn-outline" onclick="selectWaRecipient('Manoj Yadav', '9899001122')" style="font-size: 11px; padding: 3px 8px;">Manoj Yadav</button>
+          </div>
+        </div>
+
+        <!-- Template Selector -->
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">Select Clinical Reminder Template:</label>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="docWaTemplate" value="dosage" checked onchange="applyDoctorWaTemplate('dosage')">
+              <span>💊 <strong>Dosage Routine & Jan Aushadhi Savings</strong> (Morning/Afternoon/Night schedule)</span>
+            </label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="docWaTemplate" value="diet" onchange="applyDoctorWaTemplate('diet')">
+              <span>⚠️ <strong>Dietary & Drug Absorption Alert</strong> (Avoid tea/coffee with Iron; take Calcium at night)</span>
+            </label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="docWaTemplate" value="teleconsult" onchange="applyDoctorWaTemplate('teleconsult')">
+              <span>📅 <strong>Teleconsultation Slot Confirmation</strong> (Time, Doctor Code DOC-4829, Join details)</span>
+            </label>
+            <label style="font-size: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="docWaTemplate" value="followup" onchange="applyDoctorWaTemplate('followup')">
+              <span>🩸 <strong>Lab Test / PHC Follow-Up Reminder</strong> (Hemoglobin test & blood pressure check)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Message Preview Textarea -->
+        <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">
+          Message Content Preview (Editable):
+        </label>
+        <textarea id="docWaMessageText" rows="6" style="width: 100%; font-size: 12px; font-family: monospace; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text-main); resize: vertical;"></textarea>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 11px; color: var(--text-muted);">Transmits via WhatsApp Web/App & PSMS Gateway</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-outline" onclick="closeDoctorWhatsAppModal()">Cancel</button>
+          <button class="btn-green" onclick="sendCustomDoctorWhatsApp()" style="background: #059669;">
+            <span>🚀 Send WhatsApp Reminder</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ================= REJECT PRESCRIPTION MODAL ================= -->
   <div id="rejectRxModal" class="modal-overlay">
@@ -2274,26 +2484,29 @@
       showToast('Doctor workstation locked.', 'success');
     }
 
-    // View Switching: Triage Worklist vs Calling Data Collector vs Prescription Verification Desk vs Patient Directory
+    // View Switching: Triage Worklist vs Calling Data Collector vs Prescription Verification Desk vs Patient Directory vs Appointment Requests
     function switchDoctorView(viewName) {
       const triageView = document.getElementById('triageWorklistView');
       const callingView = document.getElementById('callingDataCollectorView');
       const rxView = document.getElementById('prescriptionVerificationView');
       const patientsView = document.getElementById('patientDirectoryView');
+      const aptsView = document.getElementById('appointmentsDeskView');
 
       const btnTriage = document.getElementById('viewBtnTriage');
       const btnCalling = document.getElementById('viewBtnCalling');
       const btnRx = document.getElementById('viewBtnPrescriptions');
       const btnPatients = document.getElementById('viewBtnPatients');
+      const btnApts = document.getElementById('viewBtnAppointments');
 
       // Hide all views first
       if (triageView) triageView.style.display = 'none';
       if (callingView) callingView.style.display = 'none';
       if (rxView) rxView.style.display = 'none';
       if (patientsView) patientsView.style.display = 'none';
+      if (aptsView) aptsView.style.display = 'none';
 
       // Reset all tab buttons to outline
-      [btnTriage, btnCalling, btnRx, btnPatients].forEach(btn => {
+      [btnTriage, btnCalling, btnRx, btnPatients, btnApts].forEach(btn => {
         if (btn) {
           btn.classList.remove('active', 'btn-teal');
           btn.classList.add('btn-outline');
@@ -2321,6 +2534,13 @@
           btnPatients.classList.add('active', 'btn-teal');
         }
         fetchPatients();
+      } else if (viewName === 'appointments') {
+        if (aptsView) aptsView.style.display = 'block';
+        if (btnApts) {
+          btnApts.classList.remove('btn-outline');
+          btnApts.classList.add('active', 'btn-teal');
+        }
+        fetchDoctorAppointments();
       } else {
         if (triageView) triageView.style.display = 'block';
         if (btnTriage) {
@@ -3233,6 +3453,378 @@
       }
     }
 
+    // ================= APPOINTMENT REQUESTS & APPROVALS DESK =================
+    let doctorAppointmentsList = [];
+    let currentAptFilter = 'ALL';
+
+    async function fetchDoctorAppointments() {
+      try {
+        const res = await fetch('/api/appointments');
+        const data = await res.json();
+        if (data && Array.isArray(data.appointments)) {
+          doctorAppointmentsList = data.appointments;
+          updateAppointmentMetrics();
+          renderDoctorAppointmentsTable();
+        }
+      } catch (err) {
+        console.warn('Error fetching appointments:', err);
+      }
+    }
+
+    function updateAppointmentMetrics() {
+      const total = doctorAppointmentsList.length;
+      const pending = doctorAppointmentsList.filter(a => a.status === 'PENDING_DOCTOR_APPROVAL').length;
+      const confirmed = doctorAppointmentsList.filter(a => a.status === 'CONFIRMED').length;
+      const rescheduled = doctorAppointmentsList.filter(a => a.status === 'RESCHEDULED_BY_DOCTOR').length;
+
+      const mTotal = document.getElementById('metricTotalAppointments');
+      const mPending = document.getElementById('metricPendingAppointments');
+      const mConfirmed = document.getElementById('metricConfirmedAppointments');
+      const mRescheduled = document.getElementById('metricRescheduledAppointments');
+      const badgeCount = document.getElementById('badgeAppointmentsCount');
+
+      if (mTotal) mTotal.innerText = total;
+      if (mPending) mPending.innerText = pending;
+      if (mConfirmed) mConfirmed.innerText = confirmed;
+      if (mRescheduled) mRescheduled.innerText = rescheduled;
+      if (badgeCount) {
+        badgeCount.innerText = `${pending} PENDING`;
+        badgeCount.style.background = pending > 0 ? '#f59e0b' : '#0284c7';
+      }
+    }
+
+    function filterAppointmentsStatus(status) {
+      currentAptFilter = status;
+      ['filterAptAll', 'filterAptPending', 'filterAptConfirmed', 'filterAptRescheduled'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) {
+          btn.style.background = '';
+          btn.style.color = '';
+          btn.style.fontWeight = '600';
+        }
+      });
+
+      const activeBtn = status === 'ALL' ? document.getElementById('filterAptAll') :
+                        status === 'PENDING_DOCTOR_APPROVAL' ? document.getElementById('filterAptPending') :
+                        status === 'CONFIRMED' ? document.getElementById('filterAptConfirmed') :
+                        document.getElementById('filterAptRescheduled');
+      if (activeBtn) {
+        activeBtn.style.background = 'var(--primary-light)';
+        activeBtn.style.color = 'var(--primary)';
+        activeBtn.style.fontWeight = '700';
+      }
+      renderDoctorAppointmentsTable();
+    }
+
+    function renderDoctorAppointmentsTable() {
+      const container = document.getElementById('appointmentsListContainer');
+      if (!container) return;
+
+      let list = doctorAppointmentsList;
+      if (currentAptFilter !== 'ALL') {
+        list = list.filter(a => a.status === currentAptFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="card" style="text-align: center; padding: 40px; color: var(--text-muted);">
+            <div style="font-size: 28px; margin-bottom: 8px;">📅</div>
+            <div style="font-weight: 700; color: var(--text-main);">No ${currentAptFilter === 'ALL' ? '' : currentAptFilter.replace(/_/g, ' ')} Appointment Requests</div>
+            <div style="font-size: 12px; margin-top: 4px;">Patient appointment requests from Find a Doctor will appear here in real time.</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${list.map(apt => {
+            const isPending = apt.status === 'PENDING_DOCTOR_APPROVAL';
+            const isConfirmed = apt.status === 'CONFIRMED';
+            const isRescheduled = apt.status === 'RESCHEDULED_BY_DOCTOR';
+
+            let statusBadge = '';
+            if (isPending) {
+              statusBadge = `<span style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">⏳ Awaiting Doctor Approval</span>`;
+            } else if (isConfirmed) {
+              statusBadge = `<span style="background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">✅ Confirmed by Doctor</span>`;
+            } else {
+              statusBadge = `<span style="background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; display: inline-flex; align-items: center; gap: 4px;">⏱️ Rescheduled by Doctor</span>`;
+            }
+
+            return `
+              <div class="card" style="margin-bottom: 0; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border-left: 4px solid ${isPending ? 'var(--amber)' : isConfirmed ? 'var(--green)' : 'var(--blue)'};">
+                <div style="display: flex; align-items: flex-start; gap: 14px;">
+                  <div style="width: 44px; height: 44px; border-radius: 10px; background: ${isPending ? '#fffbeb' : isConfirmed ? '#ecfdf5' : '#f0f9ff'}; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; border: 1px solid ${isPending ? '#fde68a' : isConfirmed ? '#a7f3d0' : '#bae6fd'};">
+                    ${isPending ? '⏳' : isConfirmed ? '🩺' : '⏱️'}
+                  </div>
+                  <div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                      <h4 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--text-main);">${apt.patientName || 'Anita Devi'}</h4>
+                      <span class="patient-id-tag" style="font-size: 11px;">📞 ${apt.patientPhone || '+91 98765-43210'}</span>
+                      ${statusBadge}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap;">
+                      <span><strong>Requested Slot:</strong> <span style="color: var(--primary); font-weight: 700;">${apt.date} at ${apt.time}</span></span>
+                      <span>•</span>
+                      <span><strong>Doctor Code:</strong> <code style="background: var(--primary-light); color: var(--primary); padding: 1px 5px; border-radius: 4px;">${apt.doctorCode || 'DOC-4829'}</code></span>
+                      <span>•</span>
+                      <span><strong>Reason:</strong> ${apt.complaint || 'Telehealth Consultation'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  ${isPending ? `
+                    <button class="btn-green" onclick="approveDoctorAppointment('${apt.id}')" style="font-size: 12px; padding: 7px 14px;" title="Approve patient's requested consultation time">
+                      <span>✅ Approve Slot</span>
+                    </button>
+                    <button class="btn-outline" onclick="openDoctorRescheduleModal('${apt.id}', '${apt.patientName || 'Anita Devi'}', '${apt.patientPhone || '9876543210'}', '${apt.date}', '${apt.time}')" style="font-size: 12px; padding: 7px 14px; color: var(--blue); border-color: #7dd3fc;" title="Change slot time to suit doctor schedule">
+                      <span>⏱️ Change / Adjust Time</span>
+                    </button>
+                  ` : isRescheduled ? `
+                    <button class="btn-green" onclick="approveDoctorAppointment('${apt.id}')" style="font-size: 12px; padding: 7px 14px;" title="Confirm slot">
+                      <span>✅ Mark Confirmed</span>
+                    </button>
+                    <button class="btn-outline" onclick="openDoctorRescheduleModal('${apt.id}', '${apt.patientName || 'Anita Devi'}', '${apt.patientPhone || '9876543210'}', '${apt.date}', '${apt.time}')" style="font-size: 12px; padding: 7px 14px; color: var(--blue); border-color: #7dd3fc;">
+                      <span>⏱️ Adjust Slot Again</span>
+                    </button>
+                  ` : `
+                    <button class="btn-outline" onclick="openDoctorRescheduleModal('${apt.id}', '${apt.patientName || 'Anita Devi'}', '${apt.patientPhone || '9876543210'}', '${apt.date}', '${apt.time}')" style="font-size: 12px; padding: 7px 14px; color: var(--blue); border-color: #7dd3fc;" title="Reschedule if needed">
+                      <span>⏱️ Reschedule Slot</span>
+                    </button>
+                  `}
+                  <button class="btn-outline" onclick="openDoctorWhatsAppModal('${apt.patientName || 'Anita Devi'}', '${apt.patientPhone || '9876543210'}', 'teleconsult', { date: '${apt.date}', time: '${apt.time}' })" style="font-size: 12px; padding: 7px 14px; color: #047857; border-color: #6ee7b7; background: #ecfdf5;" title="Send WhatsApp reminder or appointment details">
+                    <span>💬 Send WhatsApp</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    async function approveDoctorAppointment(aptId) {
+      showToast('Approving appointment slot...', 'info');
+      try {
+        const res = await fetch(`/api/appointments/${encodeURIComponent(aptId)}/approve`, {
+          method: 'POST'
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Appointment approved! Confirmed for ${data.appointment?.date || 'Tomorrow'} at ${data.appointment?.time || '10:30 AM'}.`, 'success');
+          await fetchDoctorAppointments();
+        } else {
+          showToast('Approval failed: ' + (data.error || 'Unknown error'), 'error');
+        }
+      } catch (err) {
+        showToast('Network error approving slot: ' + err.message, 'error');
+      }
+    }
+
+    function openDoctorRescheduleModal(aptId, patientName, patientPhone, currentDate, currentTime) {
+      document.getElementById('rescheduleAptId').value = aptId;
+      document.getElementById('reschedulePatientName').innerText = patientName || 'Anita Devi';
+      document.getElementById('reschedulePatientPhone').value = patientPhone || '9876543210';
+      document.getElementById('rescheduleCurrentSlot').innerText = `Requested: ${currentDate} at ${currentTime}`;
+      document.getElementById('rescheduleTimeCustom').value = currentTime || '02:30 PM';
+      document.getElementById('doctorRescheduleModal').classList.add('active');
+    }
+
+    function closeDoctorRescheduleModal() {
+      document.getElementById('doctorRescheduleModal').classList.remove('active');
+    }
+
+    function pickSlotTime(slot, btn) {
+      document.querySelectorAll('.slot-pick-btn').forEach(b => {
+        b.classList.remove('btn-teal');
+        b.classList.add('btn-outline');
+      });
+      if (btn) {
+        btn.classList.remove('btn-outline');
+        btn.classList.add('btn-teal');
+      }
+      document.getElementById('rescheduleTimeCustom').value = slot;
+    }
+
+    async function submitDoctorReschedule() {
+      const aptId = document.getElementById('rescheduleAptId').value;
+      const newDate = document.getElementById('rescheduleDateSelect').value;
+      const newTime = document.getElementById('rescheduleTimeCustom').value.trim();
+      const sendWa = document.getElementById('rescheduleSendWhatsAppCheck').checked;
+      const patientPhone = document.getElementById('reschedulePatientPhone').value;
+      const patientName = document.getElementById('reschedulePatientName').innerText;
+
+      if (!newTime) {
+        showToast('Please select or specify a consultation time slot.', 'error');
+        return;
+      }
+
+      showToast('Rescheduling appointment slot...', 'info');
+      try {
+        const res = await fetch(`/api/appointments/${encodeURIComponent(aptId)}/reschedule`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: newDate, time: newTime })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Consultation rescheduled to ${newDate} at ${newTime}! Patient updated.`, 'success');
+          closeDoctorRescheduleModal();
+
+          if (sendWa) {
+            const cleanPhone = patientPhone.replace(/\D/g, '').slice(-10);
+            const waMsg = `🏥 *CareConnect Telehealth — Dr. Prajan Radhakrishnan (DOC-4829)*\n\n` +
+                          `नमस्ते ${patientName} जी,\n` +
+                          `डॉक्टर द्वारा आपकी टेलीकंसल्टेशन का समय निर्धारित किया गया है:\n` +
+                          `📅 *तिथि:* ${newDate}\n` +
+                          `⏰ *समय:* ${newTime}\n` +
+                          `🩺 *डॉक्टर कोड:* DOC-4829\n\n` +
+                          `कृपया निर्धारित समय पर CareConnect पोर्टल में 'Start Teleconsultation' पर क्लिक करें।\n` +
+                          `हेल्पलाइन: 104`;
+
+            fetch('/api/whatsapp/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                phone: cleanPhone,
+                patientName: patientName,
+                message: waMsg
+              })
+            }).catch(e => console.warn(e));
+          }
+
+          await fetchDoctorAppointments();
+        } else {
+          showToast('Failed to reschedule: ' + (data.error || 'Unknown error'), 'error');
+        }
+      } catch (err) {
+        showToast('Error rescheduling slot: ' + err.message, 'error');
+      }
+    }
+
+    // ================= DOCTOR WHATSAPP REMINDERS MODAL LOGIC =================
+    function openDoctorWhatsAppModal(patientName = 'Anita Devi', patientPhone = '9876543210', templateType = 'dosage', extraData = null) {
+      if (patientName) document.getElementById('docWaPatientName').value = patientName;
+      if (patientPhone) {
+        const clean = patientPhone.replace(/\D/g, '').slice(-10);
+        document.getElementById('docWaPhone').value = clean;
+      }
+
+      // Check radio button
+      const radios = document.getElementsByName('docWaTemplate');
+      for (const r of radios) {
+        if (r.value === templateType) r.checked = true;
+      }
+
+      applyDoctorWaTemplate(templateType, extraData);
+      document.getElementById('doctorWhatsAppModal').classList.add('active');
+    }
+
+    function closeDoctorWhatsAppModal() {
+      document.getElementById('doctorWhatsAppModal').classList.remove('active');
+    }
+
+    function selectWaRecipient(name, phone) {
+      document.getElementById('docWaPatientName').value = name;
+      document.getElementById('docWaPhone').value = phone;
+      // Re-apply template
+      const selectedTpl = document.querySelector('input[name="docWaTemplate"]:checked')?.value || 'dosage';
+      applyDoctorWaTemplate(selectedTpl);
+    }
+
+    function applyDoctorWaTemplate(type, extraData = null) {
+      const pName = document.getElementById('docWaPatientName').value || 'Anita Devi';
+      let msg = '';
+
+      if (type === 'dosage') {
+        msg = `🏥 *CareConnect Telehealth — Dr. Prajan Radhakrishnan, MD*\n\n` +
+              `नमस्ते ${pName} जी,\n` +
+              `डॉक्टर द्वारा आपकी पर्ची सत्यापित हो चुकी है। आपकी दैनिक दवाइयों का सही समय:\n\n` +
+              `💊 *1. Tab. Folvite 5mg (Folic Acid)*\n` +
+              `   ⏰ प्रातः नाश्ते के बाद (1 गोली)\n` +
+              `   💰 जन औषधि दर: ₹3.50 (78% बचत)\n\n` +
+              `💊 *2. Tab. Autrin (Iron + Vitamin B12)*\n` +
+              `   ⏰ दोपहर भोजन के 1 घंटे बाद\n` +
+              `   💰 जन औषधि दर: ₹12.00\n\n` +
+              `💊 *3. Tab. Shelcal 500 (Calcium + Vit D3)*\n` +
+              `   ⏰ रात्रि भोजन के बाद\n` +
+              `   💰 जन औषधि दर: ₹15.20\n\n` +
+              `📍 *निकटतम जन औषधि केंद्र:* Sonpur PHC Kendra (9:30 PM तक खुला)\n` +
+              `🩺 *हेल्पलाइन:* 104 / +91 98765-43210`;
+      } else if (type === 'diet') {
+        msg = `⚠️ *CareConnect महत्वपूर्ण भोजन व दवा निर्देश*\n\n` +
+              `नमस्ते ${pName} जी,\n` +
+              `डॉक्टर द्वारा दवाइयों के असर को बनाए रखने हेतु विशेष निर्देश:\n\n` +
+              `☕ *1. चाय / कॉफ़ी से परहेज:* आयरन (Iron) की गोली खाने के कम से कम 1 घंटे पहले या बाद तक चाय या दूध न पिएं।\n` +
+              `🥛 *2. कैल्शियम और आयरन अलग समय लें:* दोनों गोलियां एक साथ न खाएं, क्योंकि यह शरीर में अवशोषण रोकती हैं।\n` +
+              `🍋 *3. विटामिन C:* आयरन की गोली नींबू पानी या ताजे फल के साथ लें तो बेहतर असर होता है।\n\n` +
+              `कोई भी कठिनाई होने पर तुरंत 104 पर कॉल करें।`;
+      } else if (type === 'teleconsult') {
+        const slotDate = extraData?.date || 'Tomorrow';
+        const slotTime = extraData?.time || '10:30 AM';
+        msg = `📅 *CareConnect Telehealth — परामर्श सूचना*\n\n` +
+              `नमस्ते ${pName} जी,\n` +
+              `डॉक्टर राजन राधाकृष्णन (DOC-4829) के साथ आपका टेलीकंसल्टेशन स्लॉट कन्फर्म है:\n\n` +
+              `🗓️ *तिथि:* ${slotDate}\n` +
+              `⏰ *समय:* ${slotTime}\n` +
+              `🩺 *डॉक्टर कोड:* DOC-4829\n` +
+              `🔗 *परामर्श लिंक:* CareConnect पोर्टल पर 'Enter Consultation Room' बटन दबाएं।\n\n` +
+              `कृपया पर्ची और पूर्व जांच रिपोर्ट साथ रखें।`;
+      } else if (type === 'followup') {
+        msg = `🩸 *CareConnect — PHC सोनपुर जांच रिमाइंडर*\n\n` +
+              `नमस्ते ${pName} जी,\n` +
+              `आपकी एनीमिया और हीमोग्लोबिन (Hb) जांच का अगला फॉलो-अप लंबित है।\n\n` +
+              `🏥 कृपया आगामी मंगलवार को सुबह 9:00 बजे PHC सोनपुर में अपनी जांच कराएं।\n` +
+              `आशा कार्यकर्ता (ANM Sunita Devi) आपकी रिपोर्ट पोर्टल पर अपलोड करेंगी।\n\n` +
+              `स्वस्थ रहें, सुरक्षित रहें!`;
+      }
+
+      const previewBox = document.getElementById('docWaMessageText');
+      if (previewBox) previewBox.value = msg;
+    }
+
+    async function sendCustomDoctorWhatsApp() {
+      const pName = document.getElementById('docWaPatientName').value.trim() || 'Anita Devi';
+      const rawPhone = document.getElementById('docWaPhone').value.trim();
+      const cleanPhone = rawPhone.replace(/\D/g, '').slice(-10);
+      const message = document.getElementById('docWaMessageText').value.trim();
+
+      if (!cleanPhone || cleanPhone.length !== 10) {
+        showToast('Please enter a valid 10-digit mobile number.', 'error');
+        return;
+      }
+
+      if (!message) {
+        showToast('Message cannot be empty.', 'error');
+        return;
+      }
+
+      showToast(`Transmitting WhatsApp reminder to +91 ${cleanPhone}...`, 'info');
+      try {
+        const res = await fetch('/api/whatsapp/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+          body: JSON.stringify({
+            phone: cleanPhone,
+            patientName: pName,
+            message: message
+          })
+        });
+        const data = await res.json();
+        if (data.success && data.waUrl) {
+          showToast(`WhatsApp reminder dispatched successfully!`, 'success');
+          closeDoctorWhatsAppModal();
+          window.open(data.waUrl, '_blank');
+        } else {
+          showToast('Failed to dispatch: ' + (data.error || 'Server error'), 'error');
+        }
+      } catch (err) {
+        showToast('Network error sending WhatsApp: ' + err.message, 'error');
+      }
+    }
+
     // Initial Load & Polling
     document.addEventListener('DOMContentLoaded', () => {
       syncDoctorNameUI();
@@ -3246,10 +3838,12 @@
       fetchCallingSessions();
       fetchPrescriptions();
       fetchPatients();
+      fetchDoctorAppointments();
       setInterval(fetchDeskData, 2500);
       setInterval(fetchCallingSessions, 4000);
       setInterval(fetchPrescriptions, 3000);
       setInterval(fetchPatients, 4000);
+      setInterval(fetchDoctorAppointments, 3500);
     });
   </script>
 
