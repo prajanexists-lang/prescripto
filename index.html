@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -41,7 +41,17 @@
             }
           }
         }
-      }
+      };
+
+      // Immediate Light Mode default on startup
+      (function() {
+        const savedTheme = localStorage.getItem('careconnect_theme');
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
     </script>
 
     <style>
@@ -165,8 +175,8 @@
         <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
           
           <!-- Theme Toggle Circle -->
-          <button onclick="toggleTheme()" id="theme-btn" title="Toggle Light / Dark Mode" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 dark:border-[#1b4841] bg-white dark:bg-[#0b2420] text-amber-500 dark:text-amber-300 flex items-center justify-center transition-all cursor-pointer shadow-xs">
-            <i id="theme-icon" data-lucide="sun" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+          <button onclick="toggleTheme()" id="theme-btn" title="Toggle Light / Dark Mode" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 dark:border-[#1b4841] bg-white dark:bg-[#0b2420] text-slate-700 dark:text-amber-300 flex items-center justify-center transition-all cursor-pointer shadow-xs">
+            <i id="theme-icon" data-lucide="moon" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
           </button>
 
           <!-- Language Selector (Tablet / Desktop) -->
@@ -1555,7 +1565,7 @@
 
     <!-- ================= JAVASCRIPT STATE & HANDLERS ================= -->
     <script>
-      let isDarkMode = true;
+      let isDarkMode = false;
       let currentAuthMode = 'signup';
       let activeTab = 'overview';
       let activeOtpSessionId = null;
@@ -1574,6 +1584,23 @@
         doctorConnectionStatus: 'NONE',
         doctorName: null
       };
+
+      // Restore saved patient profile from localStorage if present
+      try {
+        const savedPat = localStorage.getItem('careconnect_patient');
+        if (savedPat) {
+          const parsed = JSON.parse(savedPat);
+          if (parsed && typeof parsed === 'object') {
+            currentPatient = { ...currentPatient, ...parsed };
+          }
+        }
+      } catch(e) {}
+
+      function savePatientState() {
+        try {
+          localStorage.setItem('careconnect_patient', JSON.stringify(currentPatient));
+        } catch(e) {}
+      }
 
       // Care Plan Checklist Routine Tasks (Prescripto Style)
       let dailyTasks = [
@@ -1880,7 +1907,7 @@
       ];
 
       window.addEventListener('DOMContentLoaded', () => {
-        lucide.createIcons();
+        initTheme();
         updateDynamicAbha();
         renderChecklist();
         renderKendras(currentKendrasList);
@@ -1890,6 +1917,10 @@
         fetchAppointmentsFromServer();
         setInterval(fetchAppointmentsFromServer, 4000);
         resetScannerToBlankPlus();
+
+        // Real-time synchronization with Doctor Desk & Prescriptions (every 2 seconds)
+        syncWithDoctorDesk();
+        setInterval(syncWithDoctorDesk, 2000);
 
         // Wire up drag & drop on blank plus upload zone
         const dropZone = document.getElementById('rx-upload-zone');
@@ -1917,17 +1948,100 @@
         }
       });
 
+      function initTheme() {
+        const saved = localStorage.getItem('careconnect_theme');
+        // Strictly default to LIGHT mode on startup
+        if (saved === 'dark') {
+          isDarkMode = true;
+          document.documentElement.classList.add('dark');
+          const icon = document.getElementById('theme-icon');
+          if (icon) icon.setAttribute('data-lucide', 'sun');
+        } else {
+          isDarkMode = false;
+          document.documentElement.classList.remove('dark');
+          const icon = document.getElementById('theme-icon');
+          if (icon) icon.setAttribute('data-lucide', 'moon');
+        }
+        lucide.createIcons();
+      }
+
       function toggleTheme() {
         isDarkMode = !isDarkMode;
+        localStorage.setItem('careconnect_theme', isDarkMode ? 'dark' : 'light');
         if (isDarkMode) {
           document.documentElement.classList.add('dark');
-          document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+          const icon = document.getElementById('theme-icon');
+          if (icon) icon.setAttribute('data-lucide', 'sun');
         } else {
           document.documentElement.classList.remove('dark');
-          document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
+          const icon = document.getElementById('theme-icon');
+          if (icon) icon.setAttribute('data-lucide', 'moon');
         }
         lucide.createIcons();
         showToast(`Switched to ${isDarkMode ? 'Prescripto Dark' : 'Prescripto Light'} Theme`);
+      }
+
+      // Real-time synchronization with Doctor Verification Desk
+      async function syncWithDoctorDesk() {
+        // 1. Sync Doctor-Patient Connection Link
+        try {
+          const pPhone = (currentPatient?.phone || '9876543210').toString().replace(/\D/g, '').slice(-10);
+          const res = await fetch(`/api/patients/connection-status?phone=${pPhone}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.status === 'APPROVED') {
+              const wasNotApproved = currentPatient.doctorConnectionStatus !== 'APPROVED';
+              currentPatient.doctorConnectionStatus = 'APPROVED';
+              currentPatient.doctorCode = data.doctorCode || currentPatient.doctorCode || 'DOC-4829';
+              currentPatient.doctorName = data.doctorName || currentPatient.doctorName || 'Dr. Prajan Radhakrishnan, MD';
+              savePatientState();
+              updateDoctorConnectionUI();
+              closeConnectDoctorRequiredModal();
+
+              if (wasNotApproved) {
+                showToast(`🎉 Doctor Verified & Approved: ${currentPatient.doctorName}! Prescriptions unlocked.`);
+                triggerConfetti();
+
+                if (pendingOcrScan) {
+                  const scan = pendingOcrScan;
+                  pendingOcrScan = null;
+                  runOcrScan(scan.imageSrc, scan.rxData, scan.fileName);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Connection sync notice:", e);
+        }
+
+        // 2. Sync Prescription Clinical Audit Status
+        try {
+          const resRx = await fetch('/api/prescriptions/latest');
+          if (resRx.ok) {
+            const rxData = await resRx.json();
+            const rx = rxData.prescription;
+            if (rx) {
+              const reviewCard = document.getElementById('rx-clinical-review-card');
+              const resultsSuite = document.getElementById('rx-results-suite');
+
+              if (rx.status === 'APPROVED') {
+                if (reviewCard && (reviewCard.innerHTML.includes('Forwarded to Doctor') || reviewCard.innerHTML.includes('Forwarding Prescription') || !reviewCard.innerHTML.includes('Approved by Clinician'))) {
+                  if (resultsSuite && !resultsSuite.classList.contains('hidden')) {
+                    renderRxReviewStatus('APPROVED', rx);
+                    showToast(`✅ Prescription ${rx.id} verified and approved by ${rx.reviewedBy || 'Doctor'}!`);
+                    triggerConfetti();
+                  }
+                }
+              } else if (rx.status === 'REJECTED') {
+                if (reviewCard && !reviewCard.innerHTML.includes('Clarification Requested')) {
+                  renderRxReviewStatus('REJECTED', rx);
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.warn("Rx sync notice:", e);
+        }
       }
 
       function setAppLanguage(lang) {

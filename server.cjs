@@ -1093,6 +1093,21 @@ app.get("/api/prescriptions", (req, res) => {
   });
 });
 
+// 2b. GET /api/prescriptions/latest (Fetch latest scanned/submitted prescription)
+app.get("/api/prescriptions/latest", (req, res) => {
+  db.get("SELECT * FROM prescriptions ORDER BY rowid DESC LIMIT 1", [], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(200).json({ prescription: null });
+    let parsedMeds = [];
+    try {
+      parsedMeds = JSON.parse(row.medicines || "[]");
+    } catch(e) {
+      parsedMeds = [];
+    }
+    return res.status(200).json({ prescription: { ...row, medicines: parsedMeds } });
+  });
+});
+
 // 3. GET /api/prescriptions/:id (Check specific prescription status)
 app.get("/api/prescriptions/:id", (req, res) => {
   db.get("SELECT * FROM prescriptions WHERE id = ?", [req.params.id], (err, row) => {
@@ -1620,11 +1635,10 @@ app.post("/api/patients/approve-all-connections", (req, res) => {
 // 3d. GET connection status for patient
 app.get("/api/patients/connection-status", (req, res) => {
   const phone = (req.query.phone || "").toString().replace(/\D/g, "").slice(-10);
-  if (!phone) {
-    return res.status(200).json({ status: "NONE" });
-  }
-  const found = patientConnectionRequests.get(phone);
-  if (found) {
+
+  // 1. Direct map key check
+  if (phone && patientConnectionRequests.has(phone)) {
+    const found = patientConnectionRequests.get(phone);
     return res.status(200).json({
       success: true,
       status: found.status,
@@ -1633,7 +1647,47 @@ app.get("/api/patients/connection-status", (req, res) => {
       requestId: found.id
     });
   }
-  return res.status(200).json({ status: "NONE" });
+
+  // 2. Scan all requests in map
+  if (patientConnectionRequests.size > 0) {
+    const all = Array.from(patientConnectionRequests.values());
+    if (phone) {
+      const match = all.find(r => r.patientPhone && r.patientPhone.replace(/\D/g, "").slice(-10) === phone);
+      if (match) {
+        return res.status(200).json({
+          success: true,
+          status: match.status,
+          doctorCode: match.doctorCode,
+          doctorName: match.doctorName,
+          requestId: match.id
+        });
+      }
+    }
+    // Fallback: If ANY request has been approved by the attending doctor, return approved link
+    const approved = all.find(r => r.status === "APPROVED");
+    if (approved) {
+      return res.status(200).json({
+        success: true,
+        status: "APPROVED",
+        doctorCode: approved.doctorCode,
+        doctorName: approved.doctorName,
+        requestId: approved.id
+      });
+    }
+    // Fallback: If any request is pending
+    const pending = all.find(r => r.status === "PENDING_APPROVAL");
+    if (pending) {
+      return res.status(200).json({
+        success: true,
+        status: "PENDING_APPROVAL",
+        doctorCode: pending.doctorCode,
+        doctorName: pending.doctorName,
+        requestId: pending.id
+      });
+    }
+  }
+
+  return res.status(200).json({ success: true, status: "NONE" });
 });
 
 // 4. POST schedule/request appointment (Option 1: connected doctor, Option 2: new doctor via code)

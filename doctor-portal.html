@@ -948,6 +948,39 @@
       }
     }
 
+    async function simulateIncomingPatientRequest() {
+      showToast('Submitting sample patient connection request for approval...');
+      const sampleNames = ["Sunita Kumari", "Ram Sevak Yadav", "Manju Devi", "Pooja Sharma"];
+      const randName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
+      const randPhone = "9" + Math.floor(100000000 + Math.random() * 900000000);
+
+      try {
+        const res = await fetch('/api/patients/request-doctor-connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doctorCode: currentDoctorProfile.code,
+            name: randName,
+            phone: randPhone,
+            age: 29,
+            gender: "Female",
+            village: "Sonpur Ward 2",
+            abhaId: `91-${Math.floor(1000 + Math.random() * 9000)}-1039-4821`
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`⚡ Link request from ${randName} received! Review banner above.`);
+          triggerConfetti();
+          fetchConnectionRequests();
+        } else {
+          showToast(data.error || 'Failed to submit patient request', true);
+        }
+      } catch (e) {
+        showToast('Network error submitting patient request', true);
+      }
+    }
+
     function openImageZoomModal(imgSrc) {
       const modal = document.getElementById('image-zoom-modal');
       const img = document.getElementById('modal-zoom-img');
