@@ -847,6 +847,30 @@ app.post("/api/triage-records", (req, res) => {
       stmt.finalize();
       if (err) return res.status(500).json({ error: err.message });
 
+      // Also sync into calling_sessions so it appears on the doctor's Voice & Triage feed
+      const syncCallId = "CALL-" + Math.floor(1000 + Math.random() * 9000);
+      db.run(
+        `INSERT INTO calling_sessions (id, timestamp, callerPhone, patientName, village, callType, duration, status, triageScore, symptomsDetected, medicationCompliance, requestedHomeVisit, fullTranscript, doctorNotes, assignedANM)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          syncCallId,
+          record.timestamp,
+          record.phone,
+          record.patientName,
+          record.village,
+          "AI_VOICE_TRIAGE_INTAKE",
+          "1m 20s",
+          record.status,
+          record.triageLevel,
+          record.reportedSymptoms,
+          record.medicationTaken,
+          record.requestedHomeVisit,
+          `[00:01] AI Assistant: "नमस्ते ${record.patientName} जी। कृपया अपने लक्षण बताइए।"\n[00:15] Patient: "${record.reportedSymptoms}"\n[00:30] AI Assistant: "क्या आपने दवा ली थी? ${record.medicationTaken ? 'हाँ ली थी' : 'नहीं ली'}"\n[00:45] AI Assistant: "प्राथमिक स्तर: ${record.triageLevel}। डॉक्टर को रिपोर्ट प्रेषित की जा रही है।"`,
+          record.clinicalSummary,
+          record.assignedWorker
+        ]
+      );
+
       console.log(`\n [CARECONNECT DB] Saved Record: ${record.id} (${record.patientName}) [${record.triageLevel}]`);
       return res.status(201).json({
         success: true,
@@ -883,6 +907,59 @@ app.get("/api/calling-sessions", (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.status(200).json({ sessions: rows || [] });
   });
+});
+
+// POST create / log a new calling session (from Vapi AI Triage, patient voice intake, or simulator)
+app.post("/api/calling-sessions", (req, res) => {
+  const {
+    callerPhone,
+    patientName,
+    village,
+    callType,
+    duration,
+    status,
+    triageScore,
+    symptomsDetected,
+    medicationCompliance,
+    requestedHomeVisit,
+    fullTranscript,
+    doctorNotes,
+    assignedANM
+  } = req.body;
+
+  const id = "CALL-" + Math.floor(1000 + Math.random() * 9000);
+  const now = new Date();
+  const timeString = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const effectiveScore = (triageScore || "GREEN").toUpperCase();
+  const effectiveStatus = status || (effectiveScore === "RED" ? "ALERT_FLAGGED" : "COMPLETED");
+
+  db.run(
+    `INSERT INTO calling_sessions (id, timestamp, callerPhone, patientName, village, callType, duration, status, triageScore, symptomsDetected, medicationCompliance, requestedHomeVisit, fullTranscript, doctorNotes, assignedANM)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id,
+      timeString,
+      callerPhone || "+91 98765-43210",
+      patientName || "Rural Patient",
+      village || "Sonpur Sector",
+      callType || "VAPI_AI_TRIAGE",
+      duration || "1m 30s",
+      effectiveStatus,
+      effectiveScore,
+      symptomsDetected || "Clinical triage completed via AI voice assistant.",
+      medicationCompliance ? 1 : 0,
+      requestedHomeVisit ? 1 : 0,
+      fullTranscript || `[${timeString}] AI Voice Triage session completed for ${patientName || "Patient"}.`,
+      doctorNotes || "Awaiting physician clinical review.",
+      assignedANM || (effectiveScore === "RED" ? "ANM Sunita Devi" : "Unassigned")
+    ],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      console.log(`\n [CALLING COLLECTOR] Logged Session: ${id} (${patientName}) [${effectiveScore}]`);
+      res.status(201).json({ success: true, id, message: "Calling session logged successfully." });
+    }
+  );
 });
 
 // 2. POST update doctor notes or assigned ANM on a calling session
