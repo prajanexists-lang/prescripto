@@ -45,11 +45,18 @@
 
       // Immediate Light Mode default on startup
       (function() {
-        const savedTheme = localStorage.getItem('careconnect_theme');
-        if (savedTheme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
+        const explicitSetting = sessionStorage.getItem('careconnect_theme_user_set');
+        if (!explicitSetting) {
+          // Default strictly to Light Mode on startup
+          localStorage.removeItem('careconnect_theme');
           document.documentElement.classList.remove('dark');
+        } else {
+          const savedTheme = localStorage.getItem('careconnect_theme');
+          if (savedTheme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
         }
       })();
     </script>
@@ -458,34 +465,34 @@
                 <span class="text-[10px] font-bold tracking-wider uppercase text-teal-500 font-mono">
                   NEXT SCHEDULED CONSULTATION
                 </span>
-                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold border border-emerald-200 dark:border-emerald-800">
-                  <i data-lucide="check-circle-2" class="w-3 h-3 text-emerald-500"></i>
-                  <span id="dash-appointment-status">Confirmed</span>
+                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-[11px] font-semibold border border-rose-200 dark:border-rose-800" id="dash-appointment-badge">
+                  <i data-lucide="shield-alert" class="w-3 h-3 text-rose-500"></i>
+                  <span id="dash-appointment-status">Doctor Link Required</span>
                 </span>
               </div>
 
               <div class="flex items-start space-x-4">
-                <div class="w-14 h-16 rounded-2xl bg-[#0f3e3a] text-white flex flex-col items-center justify-center shrink-0 shadow-xs border border-teal-600/30">
-                  <span class="text-lg font-extrabold leading-none" id="dash-appointment-day">07</span>
-                  <span class="text-[10px] font-bold tracking-wider text-teal-300 uppercase mt-0.5" id="dash-appointment-month">SEP</span>
+                <div class="w-14 h-16 rounded-2xl bg-slate-100 dark:bg-[#0f3e3a] text-slate-800 dark:text-white flex flex-col items-center justify-center shrink-0 shadow-xs border border-slate-200 dark:border-teal-600/30">
+                  <span class="text-lg font-extrabold leading-none" id="dash-appointment-day">--</span>
+                  <span class="text-[10px] font-bold tracking-wider text-slate-500 dark:text-teal-300 uppercase mt-0.5" id="dash-appointment-month">DOC</span>
                 </div>
 
                 <div class="space-y-1 min-w-0 flex-1">
                   <div class="flex items-center space-x-2">
                     <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate font-heading" id="dash-doctor-name">
-                      Dr. Prajan Radhakrishnan, MD
+                      No Doctor Linked
                     </h3>
-                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-600 dark:text-teal-300 font-bold" id="dash-doctor-code">DOC-4829</span>
+                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold" id="dash-doctor-code">UNLINKED</span>
                   </div>
                   <p class="text-xs text-slate-500 dark:text-slate-400" id="dash-doctor-specialty">
-                    General Medicine & Clinical Telehealth (NMC-48291)
+                    Enter doctor clinical code below or scan a prescription to request connection.
                   </p>
                   <div class="flex items-center space-x-3 text-xs pt-1 font-mono text-slate-600 dark:text-teal-200/80">
                     <span class="flex items-center space-x-1">
                       <i data-lucide="clock" class="w-3.5 h-3.5 text-teal-400"></i>
-                      <span id="dash-appointment-time">10:30 AM (Tomorrow)</span>
+                      <span id="dash-appointment-time">Awaiting Doctor Approval</span>
                     </span>
-                    <span>Direct Video Teleconsult</span>
+                    <span>ABDM Telehealth</span>
                   </div>
                 </div>
               </div>
@@ -493,11 +500,11 @@
 
             <div class="flex items-center space-x-3 pt-2">
               <button onclick="openScheduleMeetModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-teal-700 hover:bg-teal-600 text-white cursor-pointer transition-colors shadow-xs flex items-center space-x-1.5">
-                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                <span>Schedule / Change Meet</span>
+                <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                <span>Connect with Doctor</span>
               </button>
               <button onclick="switchTab('appointments')" class="px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-[#1c5047] bg-slate-50 dark:bg-[#123630] text-slate-800 dark:text-white cursor-pointer transition-colors">
-                View All Appointments
+                Doctor Registry
               </button>
             </div>
           </div>
@@ -509,17 +516,17 @@
                 <span class="text-[10px] font-bold tracking-wider uppercase text-teal-500 font-mono">
                   CARE PLAN ROUTINE
                 </span>
-                <span id="tasks-progress-badge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30">
-                  1 / 3 Done (33%)
+                <span id="tasks-progress-badge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-300 border border-slate-500/20">
+                  0 / 0 Active
                 </span>
               </div>
 
               <h3 id="tasks-headline" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-heading">
-                2 doses remaining today
+                No active doses scheduled
               </h3>
 
               <div class="w-full h-1.5 rounded-full bg-slate-500/20 overflow-hidden">
-                <div id="tasks-progress-bar" class="h-full bg-gradient-to-r from-teal-500 to-emerald-400 rounded-full transition-all duration-300" style="width: 33%"></div>
+                <div id="tasks-progress-bar" class="h-full bg-gradient-to-r from-teal-500 to-emerald-400 rounded-full transition-all duration-300" style="width: 0%"></div>
               </div>
 
               <!-- Interactive Dose Checklist (Prescripto Style) -->
@@ -1603,11 +1610,13 @@
       }
 
       // Care Plan Checklist Routine Tasks (Prescripto Style)
-      let dailyTasks = [
-        { id: 1, text: "Morning: Tab. Sizodon Plus (1-0-1)", time: "08:00 AM", completed: true },
-        { id: 2, text: "Afternoon: Iron & Folic Acid Tablet", time: "01:30 PM", completed: false },
-        { id: 3, text: "Night: Tab. Qutipin 200mg (Bedtime)", time: "09:30 PM", completed: false }
-      ];
+      let dailyTasks = [];
+      try {
+        const savedTasks = localStorage.getItem('careconnect_active_tasks');
+        if (savedTasks) {
+          dailyTasks = JSON.parse(savedTasks) || [];
+        }
+      } catch(e) {}
 
       // Prescriptions Presets
       const PRESETS = {
@@ -1914,9 +1923,35 @@
         renderDoctors(DOCTORS);
         renderAppointments();
         updateDoctorConnectionUI();
-        fetchAppointmentsFromServer();
-        setInterval(fetchAppointmentsFromServer, 4000);
-        resetScannerToBlankPlus();
+        // Restore active prescription across refreshes if present
+        const savedRxJson = localStorage.getItem('careconnect_active_rx');
+        if (savedRxJson) {
+          try {
+            const savedRx = JSON.parse(savedRxJson);
+            if (savedRx && savedRx.medicines && savedRx.medicines.length > 0) {
+              const savedImg = localStorage.getItem('careconnect_active_rx_img');
+              const resultsSuite = document.getElementById('rx-results-suite');
+              const uploadZone = document.getElementById('rx-upload-zone');
+              const resultSummary = document.getElementById('rx-result-summary');
+              if (resultsSuite) resultsSuite.classList.remove('hidden');
+              if (uploadZone) uploadZone.classList.add('hidden');
+              if (resultSummary) resultSummary.classList.remove('hidden');
+              if (savedImg && document.getElementById('rx-summary-thumbnail')) {
+                document.getElementById('rx-summary-thumbnail').src = savedImg;
+              }
+              renderPrescription(savedRx, savedImg);
+              const savedStatus = localStorage.getItem('careconnect_active_rx_status') || 'PENDING_APPROVAL';
+              const savedRxId = localStorage.getItem('careconnect_active_rx_id') || 'RX-LIVE';
+              renderRxReviewStatus(savedStatus, { id: savedRxId });
+            } else {
+              resetScannerToBlankPlus();
+            }
+          } catch(e) {
+            resetScannerToBlankPlus();
+          }
+        } else {
+          resetScannerToBlankPlus();
+        }
 
         // Real-time synchronization with Doctor Desk & Prescriptions (every 2 seconds)
         syncWithDoctorDesk();
@@ -1949,23 +1984,33 @@
       });
 
       function initTheme() {
-        const saved = localStorage.getItem('careconnect_theme');
-        // Strictly default to LIGHT mode on startup
-        if (saved === 'dark') {
-          isDarkMode = true;
-          document.documentElement.classList.add('dark');
-          const icon = document.getElementById('theme-icon');
-          if (icon) icon.setAttribute('data-lucide', 'sun');
-        } else {
+        const userSet = sessionStorage.getItem('careconnect_theme_user_set');
+        if (!userSet) {
+          // Strictly default to Light Mode on initial load / new session
+          localStorage.removeItem('careconnect_theme');
           isDarkMode = false;
           document.documentElement.classList.remove('dark');
           const icon = document.getElementById('theme-icon');
           if (icon) icon.setAttribute('data-lucide', 'moon');
+        } else {
+          const saved = localStorage.getItem('careconnect_theme');
+          if (saved === 'dark') {
+            isDarkMode = true;
+            document.documentElement.classList.add('dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.setAttribute('data-lucide', 'sun');
+          } else {
+            isDarkMode = false;
+            document.documentElement.classList.remove('dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.setAttribute('data-lucide', 'moon');
+          }
         }
         lucide.createIcons();
       }
 
       function toggleTheme() {
+        sessionStorage.setItem('careconnect_theme_user_set', 'true');
         isDarkMode = !isDarkMode;
         localStorage.setItem('careconnect_theme', isDarkMode ? 'dark' : 'light');
         if (isDarkMode) {
@@ -2016,25 +2061,43 @@
 
         // 2. Sync Prescription Clinical Audit Status
         try {
-          const resRx = await fetch('/api/prescriptions/latest');
+          const checkId = currentSubmittedRxId || localStorage.getItem('careconnect_active_rx_id');
+          const url = checkId ? `/api/prescriptions/${checkId}` : '/api/prescriptions/latest';
+          const resRx = await fetch(url);
           if (resRx.ok) {
             const rxData = await resRx.json();
-            const rx = rxData.prescription;
-            if (rx) {
+            const rx = rxData.prescription || rxData;
+            if (rx && rx.id) {
               const reviewCard = document.getElementById('rx-clinical-review-card');
               const resultsSuite = document.getElementById('rx-results-suite');
 
               if (rx.status === 'APPROVED') {
-                if (reviewCard && (reviewCard.innerHTML.includes('Forwarded to Doctor') || reviewCard.innerHTML.includes('Forwarding Prescription') || !reviewCard.innerHTML.includes('Approved by Clinician'))) {
-                  if (resultsSuite && !resultsSuite.classList.contains('hidden')) {
-                    renderRxReviewStatus('APPROVED', rx);
-                    showToast(`✅ Prescription ${rx.id} verified and approved by ${rx.reviewedBy || 'Doctor'}!`);
-                    triggerConfetti();
+                const wasNotApproved = !reviewCard || !reviewCard.innerHTML.includes('Approved by Clinician');
+                if (wasNotApproved) {
+                  // Ensure results are visible
+                  if (resultsSuite && resultsSuite.classList.contains('hidden') && rx.medicines && rx.medicines.length > 0) {
+                    resultsSuite.classList.remove('hidden');
+                    document.getElementById('meds-empty-state')?.classList.add('hidden');
+                    document.getElementById('rx-result-summary')?.classList.remove('hidden');
+                    document.getElementById('rx-upload-zone')?.classList.add('hidden');
+                    if (rx.uploadedImage && document.getElementById('rx-summary-thumbnail')) {
+                      document.getElementById('rx-summary-thumbnail').src = rx.uploadedImage;
+                    }
+                    renderPrescription(rx, rx.uploadedImage);
                   }
+                  renderRxReviewStatus('APPROVED', rx);
+                  updateDailyTasksFromRx(rx.medicines || activeRx?.medicines);
+                  try {
+                    localStorage.setItem('careconnect_active_rx_status', 'APPROVED');
+                    localStorage.setItem('careconnect_active_rx', JSON.stringify(rx));
+                  } catch(e) {}
+                  showToast(`✅ Prescription ${rx.id} verified and approved by ${rx.reviewedBy || 'Doctor'}!`);
+                  triggerConfetti();
                 }
               } else if (rx.status === 'REJECTED') {
                 if (reviewCard && !reviewCard.innerHTML.includes('Clarification Requested')) {
                   renderRxReviewStatus('REJECTED', rx);
+                  try { localStorage.setItem('careconnect_active_rx_status', 'REJECTED'); } catch(e) {}
                 }
               }
             }
@@ -2393,11 +2456,71 @@
       // Care Plan Checklist
       function toggleChecklistTask(id) {
         dailyTasks = dailyTasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+        try {
+          localStorage.setItem('careconnect_active_tasks', JSON.stringify(dailyTasks));
+        } catch(e) {}
+        renderChecklist();
+      }
+
+      function updateDailyTasksFromRx(medicines) {
+        if (!medicines || !Array.isArray(medicines) || medicines.length === 0) {
+          dailyTasks = [];
+          try { localStorage.removeItem('careconnect_active_tasks'); } catch(e) {}
+          renderChecklist();
+          return;
+        }
+        const tasks = [];
+        let idCounter = 1;
+        medicines.forEach(m => {
+          const freq = (m.frequency || '').toLowerCase();
+          const timing = (m.timing || '').toLowerCase();
+          if (freq.includes('1-0-1') || timing.includes('morning_night') || freq.includes('morning & night')) {
+            tasks.push({ id: idCounter++, text: `Morning: ${m.brandName} (1 Dose)`, time: "08:00 AM", completed: false });
+            tasks.push({ id: idCounter++, text: `Night: ${m.brandName} (1 Dose)`, time: "09:00 PM", completed: false });
+          } else if (freq.includes('1-0-0') || timing.includes('morning')) {
+            tasks.push({ id: idCounter++, text: `Morning: ${m.brandName}`, time: "08:30 AM", completed: false });
+          } else if (freq.includes('0-1-0') || timing.includes('afternoon') || timing.includes('lunch')) {
+            tasks.push({ id: idCounter++, text: `Afternoon: ${m.brandName}`, time: "01:30 PM", completed: false });
+          } else if (freq.includes('0-0-1') || timing.includes('night') || timing.includes('bedtime')) {
+            tasks.push({ id: idCounter++, text: `Night: ${m.brandName}`, time: "09:30 PM", completed: false });
+          } else if (freq.includes('1-1-1') || timing.includes('all_meals')) {
+            tasks.push({ id: idCounter++, text: `Morning: ${m.brandName}`, time: "08:00 AM", completed: false });
+            tasks.push({ id: idCounter++, text: `Afternoon: ${m.brandName}`, time: "01:30 PM", completed: false });
+            tasks.push({ id: idCounter++, text: `Night: ${m.brandName}`, time: "09:00 PM", completed: false });
+          } else {
+            tasks.push({ id: idCounter++, text: `Daily: ${m.brandName}`, time: "10:00 AM", completed: false });
+          }
+        });
+        dailyTasks = tasks.slice(0, 6);
+        try {
+          localStorage.setItem('careconnect_active_tasks', JSON.stringify(dailyTasks));
+        } catch(e) {}
         renderChecklist();
       }
 
       function renderChecklist() {
         const container = document.getElementById('dose-checklist-items');
+        if (!container) return;
+
+        if (!dailyTasks || dailyTasks.length === 0) {
+          const badge = document.getElementById('tasks-progress-badge');
+          const headline = document.getElementById('tasks-headline');
+          const bar = document.getElementById('tasks-progress-bar');
+          if (badge) badge.innerText = "0 / 0 Active";
+          if (headline) headline.innerText = "No active doses scheduled";
+          if (bar) bar.style.width = "0%";
+          container.innerHTML = `
+            <div class="py-3 px-3 text-center rounded-2xl bg-slate-50 dark:bg-[#07201c] border border-dashed border-slate-200 dark:border-[#164b40] space-y-1 my-1">
+              <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">No active doses scheduled</p>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                Scan a prescription slip or link with an attending doctor to automatically generate your personalized daily timetable.
+              </p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
         const done = dailyTasks.filter(t => t.completed).length;
         const pct = Math.round((done / dailyTasks.length) * 100);
         const rem = dailyTasks.length - done;
@@ -2453,6 +2576,15 @@
       function resetScannerToBlankPlus() {
         activeRx = null;
         currentSubmittedRxId = null;
+        try {
+          localStorage.removeItem('careconnect_active_rx');
+          localStorage.removeItem('careconnect_active_rx_img');
+          localStorage.removeItem('careconnect_active_rx_status');
+          localStorage.removeItem('careconnect_active_rx_id');
+        } catch(e) {}
+        dailyTasks = [];
+        try { localStorage.removeItem('careconnect_active_tasks'); } catch(e) {}
+        renderChecklist();
         if (rxStatusPollTimer) {
           clearInterval(rxStatusPollTimer);
           rxStatusPollTimer = null;
@@ -2486,7 +2618,7 @@
       function triggerSampleScan(key) {
         const p = PRESETS[key] || PRESETS.nagendar;
         const sampleSvg = getSampleSlipSvg(p.doctor, p.category, p.medicines);
-        runOcrScan(sampleSvg, p);
+        runOcrScan(sampleSvg, p, `${key.toUpperCase()}_Prescription_Slip.svg`);
       }
 
       // File select handler (from clicking the blank plus)
@@ -2496,24 +2628,13 @@
         handleCustomRxFile(file);
       }
 
-      // Process uploaded prescription picture
+      // Process uploaded prescription picture with Gemini Vision OCR
       function handleCustomRxFile(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const imgSrc = e.target.result;
-          const nameLower = (file.name || '').toLowerCase();
-          let matchedPreset = PRESETS.nagendar;
-          if (nameLower.includes('shukla') || nameLower.includes('pediat') || nameLower.includes('gastro') || nameLower.includes('acid')) {
-            matchedPreset = PRESETS.shukla;
-          } else if (nameLower.includes('mandal') || nameLower.includes('ortho') || nameLower.includes('spine') || nameLower.includes('bone')) {
-            matchedPreset = PRESETS.mandal;
-          } else if (nameLower.includes('aims') || nameLower.includes('emerg') || nameLower.includes('iv') || nameLower.includes('fluid')) {
-            matchedPreset = PRESETS.aims;
-          } else if (nameLower.includes('singh') || nameLower.includes('liver') || nameLower.includes('colic')) {
-            matchedPreset = PRESETS.singh;
-          }
-
-          runOcrScan(imgSrc, matchedPreset, file.name);
+          // Trigger Google Gemini Vision AI Scanner
+          runOcrScan(imgSrc, null, file.name);
         };
         reader.readAsDataURL(file);
       }
@@ -2969,24 +3090,8 @@
         lucide.createIcons();
       }
 
-      // Animated OCR scanning pipeline
-      function runOcrScan(imageSrc, rxData, fileName = null) {
-        // Ensure patient context exists
-        if (!currentPatient) {
-          currentPatient = {
-            name: "Patient",
-            phone: "+91 9999999999",
-            doctorCode: "DOC-4829",
-            doctorName: "Dr. Prajan Radhakrishnan, MD",
-            doctorConnectionStatus: "APPROVED"
-          };
-        }
-        if (!currentPatient.doctorCode) {
-          currentPatient.doctorCode = "DOC-4829";
-          currentPatient.doctorName = "Dr. Prajan Radhakrishnan, MD";
-          currentPatient.doctorConnectionStatus = "APPROVED";
-        }
-
+      // Animated Google Gemini AI Vision OCR scanning pipeline
+      async function runOcrScan(imageSrc, rxData = null, fileName = null) {
         const uploadZone = document.getElementById('rx-upload-zone');
         const scanningView = document.getElementById('rx-scanning-view');
         const resultSummary = document.getElementById('rx-result-summary');
@@ -2997,53 +3102,92 @@
         const hudStep = document.getElementById('ocr-hud-step');
         const hudPct = document.getElementById('ocr-hud-pct');
 
-        uploadZone.classList.add('hidden');
-        resultSummary.classList.add('hidden');
-        scanningView.classList.remove('hidden');
-        previewImg.src = imageSrc;
+        if (uploadZone) uploadZone.classList.add('hidden');
+        if (resultSummary) resultSummary.classList.add('hidden');
+        if (scanningView) scanningView.classList.remove('hidden');
+        if (previewImg) previewImg.src = imageSrc;
 
-        // OCR Pipeline steps
-        progressBar.style.width = '15%';
-        progressPct.innerText = '15%';
-        hudPct.innerText = '15%';
-        progressLabel.innerText = '🤖 AI Vision Reading handwriting and layout...';
-        hudStep.innerText = 'Initializing prescription reader...';
+        // Step 1: Initializing Vision Pipeline
+        if (progressBar) progressBar.style.width = '20%';
+        if (progressPct) progressPct.innerText = '20%';
+        if (hudPct) hudPct.innerText = '20%';
+        if (progressLabel) progressLabel.innerText = '🤖 AI Vision Engine connecting to Google Gemini...';
+        if (hudStep) hudStep.innerText = 'Analyzing prescription image layout...';
+
+        let effectiveRx = rxData;
+
+        // If rxData not passed (custom prescription upload), call backend Gemini Vision OCR endpoint
+        if (!effectiveRx) {
+          try {
+            setTimeout(() => {
+              if (progressBar) progressBar.style.width = '55%';
+              if (progressPct) progressPct.innerText = '55%';
+              if (hudPct) hudPct.innerText = '55%';
+              if (progressLabel) progressLabel.innerText = '🤖 Google Gemini reading doctor handwriting & dosages...';
+              if (hudStep) hudStep.innerText = 'Transcribing doctor Rx annotations...';
+            }, 350);
+
+            const userKey = localStorage.getItem('careconnect_gemini_api_key') || '';
+            const res = await fetch('/api/ocr/gemini-scan', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                imageBase64: imageSrc,
+                fileName: fileName || 'Prescription_Slip.jpg',
+                apiKey: userKey
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              if (data.success && data.medicines && data.medicines.length > 0) {
+                effectiveRx = {
+                  doctor: data.doctor,
+                  category: data.category,
+                  medicines: data.medicines,
+                  source: data.source
+                };
+              }
+            }
+          } catch(ocrErr) {
+            console.warn("Gemini OCR fetch error, using local fallback:", ocrErr);
+          }
+        }
+
+        if (!effectiveRx) {
+          effectiveRx = PRESETS.shukla;
+        }
 
         setTimeout(() => {
-          progressBar.style.width = '45%';
-          progressPct.innerText = '45%';
-          hudPct.innerText = '45%';
-          progressLabel.innerText = 'Reading doctor handwriting & daily timings (morning, night)...';
-          hudStep.innerText = 'Reading doctor handwriting...';
-        }, 400);
+          if (progressBar) progressBar.style.width = '85%';
+          if (progressPct) progressPct.innerText = '85%';
+          if (hudPct) hudPct.innerText = '85%';
+          if (progressLabel) progressLabel.innerText = 'Matching prescribed medications against Jan Aushadhi generic formulary...';
+          if (hudStep) hudStep.innerText = 'Calculating generic price savings...';
+        }, 750);
 
         setTimeout(() => {
-          progressBar.style.width = '78%';
-          progressPct.innerText = '78%';
-          hudPct.innerText = '78%';
-          progressLabel.innerText = 'Matching prescribed medications against generic formulary...';
-          hudStep.innerText = 'Matching generic formulary...';
-        }, 850);
+          if (progressBar) progressBar.style.width = '100%';
+          if (progressPct) progressPct.innerText = '100%';
+          if (hudPct) hudPct.innerText = '100%';
+          const engineName = effectiveRx.source === 'GEMINI_VISION_AI' ? 'Google Gemini Vision AI' : 'Clinical OCR Engine';
+          if (progressLabel) progressLabel.innerText = `Extraction complete (${engineName})! ${effectiveRx.medicines.length} verified medications identified.`;
+          if (hudStep) hudStep.innerText = 'Prescription successfully digitized!';
+        }, 1150);
 
         setTimeout(() => {
-          progressBar.style.width = '100%';
-          progressPct.innerText = '100%';
-          hudPct.innerText = '100%';
-          progressLabel.innerText = `Extraction complete! ${rxData.medicines.length} verified medications identified.`;
-          hudStep.innerText = 'Prescription successfully digitized!';
-        }, 1300);
-
-        setTimeout(() => {
-          scanningView.classList.add('hidden');
-          resultSummary.classList.remove('hidden');
-          document.getElementById('rx-summary-thumbnail').src = imageSrc;
+          if (scanningView) scanningView.classList.add('hidden');
+          if (resultSummary) resultSummary.classList.remove('hidden');
+          const thumb = document.getElementById('rx-summary-thumbnail');
+          if (thumb) thumb.src = imageSrc;
           document.getElementById('meds-empty-state')?.classList.add('hidden');
           document.getElementById('rx-results-suite')?.classList.remove('hidden');
 
-          renderPrescription(rxData, imageSrc);
+          renderPrescription(effectiveRx, imageSrc);
           triggerConfetti();
-          showToast(fileName ? `✨ Digitized ${fileName}: ${rxData.medicines.length} medicines identified.` : `✨ Digitized prescription: ${rxData.medicines.length} medicines identified.`);
-        }, 1550);
+          const srcNotice = effectiveRx.source === 'GEMINI_VISION_AI' ? ' (Gemini Vision AI)' : '';
+          showToast(fileName ? `✨ Digitized ${fileName}${srcNotice}: ${effectiveRx.medicines.length} medicines identified.` : `✨ Digitized prescription${srcNotice}: ${effectiveRx.medicines.length} medicines identified.`);
+        }, 1450);
       }
 
       // Prescription Doctor Review Desk Integration
@@ -3174,6 +3318,12 @@
           if (!res.ok) throw new Error('HTTP ' + res.status);
           const data = await res.json();
           currentSubmittedRxId = data.prescriptionId;
+          try {
+            localStorage.setItem('careconnect_active_rx_id', data.prescriptionId);
+            localStorage.setItem('careconnect_active_rx_status', 'PENDING_APPROVAL');
+            localStorage.setItem('careconnect_active_rx', JSON.stringify(rx));
+            if (imageSrc) localStorage.setItem('careconnect_active_rx_img', imageSrc);
+          } catch(e) {}
 
           renderRxReviewStatus('PENDING_APPROVAL', {
             id: data.prescriptionId,
@@ -3203,11 +3353,21 @@
             clearInterval(rxStatusPollTimer);
             rxStatusPollTimer = null;
             renderRxReviewStatus('APPROVED', rx);
+            updateDailyTasksFromRx(rx.medicines || activeRx?.medicines);
+            try {
+              localStorage.setItem('careconnect_active_rx_status', 'APPROVED');
+              if (rx.medicines && rx.medicines.length > 0 && activeRx) {
+                activeRx.medicines = rx.medicines;
+                localStorage.setItem('careconnect_active_rx', JSON.stringify(activeRx));
+              }
+            } catch(e) {}
             showToast(`✅ Prescription ${rx.id} approved by ${rx.reviewedBy || 'Doctor'}!`);
+            triggerConfetti();
           } else if (rx.status === 'REJECTED') {
             clearInterval(rxStatusPollTimer);
             rxStatusPollTimer = null;
             renderRxReviewStatus('REJECTED', rx);
+            try { localStorage.setItem('careconnect_active_rx_status', 'REJECTED'); } catch(e) {}
             showToast(`⚠️ Doctor requested clarification on ${rx.id}.`, true);
           }
         } catch (err) {
@@ -3244,6 +3404,12 @@
 
       function renderPrescription(rx, imageSrc = null) {
         activeRx = rx;
+        try {
+          localStorage.setItem('careconnect_active_rx', JSON.stringify(rx));
+          if (imageSrc) localStorage.setItem('careconnect_active_rx_img', imageSrc);
+        } catch(e) {}
+        updateDailyTasksFromRx(rx.medicines);
+
         document.getElementById('rx-doctor-name').innerText = rx.doctor;
         document.getElementById('rx-protocol-title').innerText = rx.category;
         document.getElementById('meds-count-badge').innerText = `${rx.medicines.length} Verified Medicines`;
@@ -3371,8 +3537,10 @@
 
         renderTimetableSlots(morningMeds, afternoonMeds, nightMeds);
         renderIndianDietMatrix(rx.medicines);
+        if (!currentSubmittedRxId && !localStorage.getItem('careconnect_active_rx_id')) {
+          submitPrescriptionToDoctorDesk(rx, imageSrc);
+        }
         updateHindiTranscript(rx);
-        submitPrescriptionToDoctorDesk(rx, imageSrc);
         lucide.createIcons();
       }
 

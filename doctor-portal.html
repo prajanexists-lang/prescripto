@@ -35,12 +35,17 @@
 
     // Immediate Light Mode default check (prevents flash & persists across refreshes)
     (function() {
-      const savedTheme = localStorage.getItem('careconnect_theme');
-      // Default to LIGHT mode unless explicitly saved as 'dark'
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
+      const explicit = sessionStorage.getItem('careconnect_theme_user_set');
+      if (!explicit) {
+        localStorage.removeItem('careconnect_theme');
         document.documentElement.classList.remove('dark');
+      } else {
+        const savedTheme = localStorage.getItem('careconnect_theme');
+        if (savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
       }
     })();
   </script>
@@ -1489,6 +1494,7 @@
 
     // ================= THEME & UI HELPERS =================
     function toggleTheme() {
+      sessionStorage.setItem('careconnect_theme_user_set', 'true');
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.setItem('careconnect_theme', isDark ? 'dark' : 'light');
       lucide.createIcons();
@@ -1496,12 +1502,17 @@
     }
 
     function initTheme() {
-      const saved = localStorage.getItem('careconnect_theme');
-      // Strictly default to LIGHT mode unless explicitly saved as 'dark'
-      if (saved === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
+      const explicit = sessionStorage.getItem('careconnect_theme_user_set');
+      if (!explicit) {
+        localStorage.removeItem('careconnect_theme');
         document.documentElement.classList.remove('dark');
+      } else {
+        const saved = localStorage.getItem('careconnect_theme');
+        if (saved === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
       }
       lucide.createIcons();
     }
