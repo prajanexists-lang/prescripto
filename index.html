@@ -139,10 +139,11 @@
             <span>Jan Aushadhi</span>
           </button>
 
-          <!-- Find Doctor -->
+          <!-- Connect Doctor -->
           <button onclick="switchTab('doctors')" id="nav-tab-doctors" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-2 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white">
             <i data-lucide="stethoscope" class="w-3.5 h-3.5 text-teal-400"></i>
-            <span>Find Doctor</span>
+            <span>Connect Doctor</span>
+            <span id="nav-doc-badge" class="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400">Not Linked</span>
           </button>
 
           <!-- Appointments -->
@@ -175,9 +176,10 @@
           </div>
 
           <!-- Doctor Portal Switcher Button -->
-          <a href="/doctor" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-600 text-white shadow-xs flex items-center space-x-1.5 transition-all cursor-pointer" title="Switch to Doctor Clinical Command Desk">
+          <a href="/doctor" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-600 text-white shadow-xs flex items-center space-x-1 transition-all cursor-pointer" title="Switch to Doctor Clinical Command Desk">
             <i data-lucide="stethoscope" class="w-3.5 h-3.5"></i>
-            <span>Doctor Portal →</span>
+            <span class="hidden sm:inline">Doctor Portal →</span>
+            <span class="sm:hidden">Doc →</span>
           </a>
 
           <!-- Profile Badge with Dropdown -->
@@ -198,6 +200,35 @@
 
       </div>
     </header>
+
+    <!-- MOBILE SUB-NAVIGATION BAR (Visible on mobile screens < md when logged in, hidden on desktop) -->
+    <div id="mobile-nav-pill-bar" class="hidden md:hidden overflow-x-auto no-scrollbar py-2 px-3 bg-slate-100/95 dark:bg-[#0b2420]/95 border-b border-slate-200 dark:border-[#17433c] items-center space-x-1.5 shrink-0 z-30 sticky top-14">
+      <button onclick="switchTab('overview')" id="m-nav-tab-overview" class="whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200 dark:border-[#205b51]">
+        <i data-lucide="heart-pulse" class="w-3.5 h-3.5 text-teal-400"></i>
+        <span>Overview</span>
+      </button>
+      <button onclick="switchTab('triage')" id="m-nav-tab-triage" class="whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 text-slate-600 dark:text-[#8ea7a3]">
+        <i data-lucide="mic" class="w-3.5 h-3.5 text-teal-400"></i>
+        <span>Triage</span>
+      </button>
+      <button onclick="switchTab('jan-aushadhi')" id="m-nav-tab-jan-aushadhi" class="whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 text-slate-600 dark:text-[#8ea7a3]">
+        <i data-lucide="building-2" class="w-3.5 h-3.5 text-teal-400"></i>
+        <span>Jan Aushadhi</span>
+      </button>
+      <button onclick="switchTab('doctors')" id="m-nav-tab-doctors" class="whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 text-slate-600 dark:text-[#8ea7a3]">
+        <i data-lucide="stethoscope" class="w-3.5 h-3.5 text-teal-400"></i>
+        <span>Connect Doctor</span>
+        <span id="m-nav-doc-badge" class="px-1 py-0.2 rounded-full text-[8px] font-bold bg-amber-500/20 text-amber-600">!</span>
+      </button>
+      <button onclick="switchTab('appointments')" id="m-nav-tab-appointments" class="whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 text-slate-600 dark:text-[#8ea7a3]">
+        <i data-lucide="calendar" class="w-3.5 h-3.5 text-teal-400"></i>
+        <span>Appointments</span>
+      </button>
+      <button onclick="switchTab('reminders')" id="m-nav-tab-reminders" class="whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 text-slate-600 dark:text-[#8ea7a3]">
+        <i data-lucide="bell" class="w-3.5 h-3.5 text-teal-400"></i>
+        <span>Reminders</span>
+      </button>
+    </div>
 
     <!-- ================= NOTIFICATION TOAST ================= -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none max-w-md bg-slate-900 dark:bg-[#0b2420] text-white px-4 py-3 rounded-2xl shadow-xl border border-slate-700 dark:border-[#17433c] flex items-center space-x-3 text-xs">
@@ -244,13 +275,13 @@
           <div id="register-fields" class="space-y-3">
             <div>
               <label class="block text-xs font-bold mb-1 text-slate-800 dark:text-teal-200">Patient Full Name *:</label>
-              <input type="text" id="reg-name" value="Anita Devi" oninput="updateDynamicAbha()" placeholder="e.g. Anita Devi" class="w-full border rounded-xl px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-slate-900 dark:text-white focus:outline-none focus:border-teal-400">
+              <input type="text" id="reg-name" oninput="updateDynamicAbha()" placeholder="Enter patient full name (e.g. Rahul Sharma)" class="w-full border rounded-xl px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-slate-900 dark:text-white focus:outline-none focus:border-teal-400">
             </div>
 
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold mb-1 text-slate-800 dark:text-teal-200">Age:</label>
-                <input type="number" id="reg-age" value="28" class="w-full border rounded-xl px-3.5 py-2 text-xs bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-slate-900 dark:text-white focus:outline-none focus:border-teal-400">
+                <input type="number" id="reg-age" placeholder="Age (e.g. 28)" class="w-full border rounded-xl px-3.5 py-2 text-xs bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-slate-900 dark:text-white focus:outline-none focus:border-teal-400">
               </div>
               <div>
                 <label class="block text-xs font-bold mb-1 text-slate-800 dark:text-teal-200">Gender:</label>
@@ -265,14 +296,14 @@
             <!-- Doctor Clinical Link Code -->
             <div>
               <div class="flex items-center justify-between mb-1">
-                <label class="block text-xs font-bold text-slate-800 dark:text-teal-200">Doctor Clinical Code *:</label>
-                <span class="text-[10px] font-bold text-teal-600 dark:text-teal-400">Dr. Prajan Radhakrishnan, MD</span>
+                <label class="block text-xs font-bold text-slate-800 dark:text-teal-200">Doctor Clinical Code (Optional at login):</label>
+                <span class="text-[10px] font-bold text-teal-600 dark:text-teal-400">Can connect inside</span>
               </div>
               <div class="relative">
                 <span class="absolute left-3 top-2.5 text-xs text-slate-400">🩺</span>
-                <input type="text" id="reg-doctor-code" value="DOC-4829" placeholder="e.g. DOC-4829" class="w-full pl-9 pr-3 py-2 text-xs font-mono font-bold uppercase rounded-xl border bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none focus:border-teal-400">
+                <input type="text" id="reg-doctor-code" placeholder="e.g. DOC-4829 (or connect inside)" class="w-full pl-9 pr-3 py-2 text-xs font-mono font-bold uppercase rounded-xl border bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none focus:border-teal-400">
               </div>
-              <p class="text-[10px] text-slate-400 mt-1">Directly syncs your health jacket into your doctor's clinical repository.</p>
+              <p class="text-[10px] text-slate-400 mt-1">Connect with your doctor to verify prescriptions and enable generic dispensary.</p>
             </div>
 
             <!-- Unique ABHA Preview Badge (Prescripto Style) -->
@@ -295,7 +326,7 @@
             <label class="block text-xs font-bold mb-1 text-slate-800 dark:text-teal-200">Phone Number (10 digits) *:</label>
             <div class="relative">
               <span class="absolute left-3 top-2.5 text-xs font-bold text-slate-400 font-mono">+91</span>
-              <input type="tel" id="auth-phone" maxlength="10" value="9999999999" oninput="updateDynamicAbha()" placeholder="9999999999" class="w-full pl-11 pr-3 py-2.5 text-xs font-mono rounded-xl border bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-slate-900 dark:text-white focus:outline-none focus:border-teal-400">
+              <input type="tel" id="auth-phone" maxlength="10" oninput="updateDynamicAbha()" placeholder="Enter 10-digit mobile (or 9999999999 for test)" class="w-full pl-11 pr-3 py-2.5 text-xs font-mono rounded-xl border bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-slate-900 dark:text-white focus:outline-none focus:border-teal-400">
             </div>
             <p class="text-[11px] text-slate-400 mt-1 flex items-center space-x-1">
               <i data-lucide="phone-outgoing" class="w-3 h-3 text-emerald-500"></i>
@@ -1094,21 +1125,75 @@
         </div>
       </div>
 
-      <!-- ================= TAB 4: FIND DOCTOR ================= -->
+      <!-- ================= TAB 4: CONNECT DOCTOR ================= -->
       <div id="content-doctors" class="hidden space-y-6">
-        <div class="bg-white dark:bg-[#0b2420] rounded-3xl border border-slate-200 dark:border-[#133d36] p-6 sm:p-8 space-y-5 shadow-xs">
+        <div class="bg-white dark:bg-[#0b2420] rounded-3xl border border-slate-200 dark:border-[#133d36] p-6 sm:p-8 space-y-6 shadow-xs">
+          
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-[#17433c]">
             <div>
               <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center space-x-2 font-heading">
                 <i data-lucide="stethoscope" class="w-5 h-5 text-teal-500"></i>
-                <span>Verified Doctor Teleconsultation Directory</span>
+                <span>Connect Doctor & Teleconsultation Desk</span>
               </h2>
-              <p class="text-xs text-slate-500 dark:text-[#8ea7a3]">National Medical Commission (NMC) licensed physicians with available slots.</p>
+              <p class="text-xs text-slate-500 dark:text-[#8ea7a3]">Link your attending physician via unique doctor code to unlock prescription verification and medical record sync.</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-[11px] font-bold text-teal-600 dark:text-teal-400 font-mono">ABDM-LINK-GATEWAY</span>
             </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="doctors-list-container">
-            <!-- Populated via JS -->
+
+          <!-- Dynamic Connection Status Card -->
+          <div id="doctor-connection-status-panel" class="p-5 rounded-2xl border transition-all">
+            <!-- Populated via JS (Connected status or Unconnected warning) -->
           </div>
+
+          <!-- Interactive Code Input Box -->
+          <div class="p-5 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c] space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                <i data-lucide="key-round" class="w-4 h-4 text-teal-500"></i>
+                <span>Link Attending Physician via Clinical Code</span>
+              </h3>
+              <span class="text-[10px] text-slate-400">Required for Rx Verification</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-teal-200/70">
+              Entering your doctor's unique clinical code securely ties your health jacket into their repository and unlocks AI prescription verification.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-3 pt-1">
+              <div class="relative flex-1">
+                <span class="absolute left-3.5 top-3 text-xs font-mono text-slate-400">🩺</span>
+                <input type="text" id="manual-doctor-code-input" placeholder="Enter code e.g. DOC-4829" class="w-full pl-9 pr-4 py-2.5 text-xs font-mono font-bold uppercase rounded-xl border bg-white dark:bg-[#0b2420] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none focus:border-teal-400">
+              </div>
+              <button onclick="handleManualDoctorCodeSubmit()" class="px-5 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-xs transition-colors shrink-0">
+                <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                <span>Connect Doctor</span>
+              </button>
+            </div>
+
+            <!-- Quick Connect Preset -->
+            <div class="pt-2 flex flex-wrap items-center gap-2 text-xs border-t border-slate-200 dark:border-[#17433c]">
+              <span class="text-slate-500 dark:text-teal-200/70 text-[11px] font-medium">Quick link primary doctor:</span>
+              <button onclick="connectDoctorCode('DOC-4829')" class="px-3 py-1 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-700 dark:text-teal-300 font-mono text-[11px] font-bold flex items-center space-x-1.5 transition-colors cursor-pointer">
+                <span>⚡ Dr. Prajan Radhakrishnan, MD (DOC-4829)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Verified Doctor Directory -->
+          <div class="space-y-4 pt-2">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+                <i data-lucide="badge-check" class="w-4 h-4 text-teal-500"></i>
+                <span>National Medical Commission (NMC) Licensed Physicians</span>
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-teal-200/70">Click "Connect" to link with that doctor or "Book" to schedule an appointment.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="doctors-list-container">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1299,6 +1384,51 @@
           <button type="button" onclick="launchWhatsAppDirect()" class="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center space-x-2 cursor-pointer shadow-md">
             <i data-lucide="send" class="w-3.5 h-3.5"></i>
             <span>Open WhatsApp Now →</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= MODAL: CONNECT DOCTOR REQUIRED BEFORE VERIFICATION ================= -->
+    <div id="connect-doctor-required-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+      <div class="bg-white dark:bg-[#0b2420] rounded-3xl max-w-md w-full p-6 space-y-5 border border-amber-500/30 shadow-2xl text-left max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center space-x-3 pb-3 border-b border-slate-100 dark:border-[#17433c]">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/30 shrink-0">
+            <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white font-heading">Doctor Connection Required</h3>
+            <p class="text-[11px] text-amber-600 dark:text-amber-400 font-semibold">ABDM Verification Safety Gate</p>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-600 dark:text-teal-200/80 leading-relaxed">
+          Under ABDM telemedicine guidelines, no medicine or prescription can be verified without a connected attending clinician. Please connect your doctor using their unique clinical code to unlock prescription verification and generic dispensary pricing.
+        </p>
+
+        <!-- Fast 1-Click Connection -->
+        <div class="p-3.5 rounded-2xl bg-teal-500/10 border border-teal-500/30 space-y-2">
+          <div class="text-[11px] font-bold text-teal-700 dark:text-teal-300">Quick Connect Attending Physician:</div>
+          <button onclick="quickConnectAndResumeScan('DOC-4829')" class="w-full py-2.5 px-3 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-xs cursor-pointer transition-colors">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+            <span>Connect Dr. Prajan Radhakrishnan (DOC-4829) & Verify Now</span>
+          </button>
+        </div>
+
+        <!-- Custom Code Input -->
+        <div class="space-y-2 pt-1">
+          <label class="block text-[11px] font-bold text-slate-700 dark:text-teal-200">Or Enter Other Doctor Code:</label>
+          <div class="flex space-x-2">
+            <input type="text" id="gate-doctor-code-input" placeholder="e.g. DOC-3910" class="flex-1 px-3 py-2 text-xs font-mono font-bold uppercase rounded-xl border bg-slate-50 dark:bg-[#061915] border-slate-300 dark:border-[#164d41] text-teal-600 dark:text-teal-300 focus:outline-none">
+            <button onclick="customConnectAndResumeScan()" class="px-4 py-2 rounded-xl bg-slate-800 dark:bg-[#133f38] hover:bg-slate-700 text-white text-xs font-bold cursor-pointer">
+              Connect
+            </button>
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 dark:border-[#17433c] flex justify-end space-x-2">
+          <button onclick="closeConnectDoctorRequiredModal()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-[#164d41] text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#10332d] text-xs font-bold cursor-pointer">
+            Cancel
           </button>
         </div>
       </div>
@@ -1776,13 +1906,14 @@
       let currentKendrasList = [...ALL_KENDRAS_DB];
 
       const DOCTORS = [
-        { id: 'doc-1', name: 'Dr. Rajesh Sharma, MD', specialty: 'General Physician & Pulmonologist', hospital: 'Apollo Clinic & Chest Care, Delhi', regNo: 'MCI-48291', exp: '14 Years', fee: '₹500', slots: ['09:30 AM', '02:00 PM', '05:30 PM'] },
-        { id: 'doc-2', name: 'Dr. Anjali Nair, MD', specialty: 'Pediatrician & Maternal Care', hospital: 'Max Healthcare, Bengaluru', regNo: 'MCI-39102', exp: '11 Years', fee: '₹400', slots: ['10:00 AM', '03:00 PM'] },
-        { id: 'doc-3', name: 'Dr. Vikram Sethi, MS (Ortho)', specialty: 'Spine Surgeon & Orthopedics', hospital: 'Fortis Memorial, Gurugram', regNo: 'MCI-52019', exp: '16 Years', fee: '₹600', slots: ['11:00 AM', '04:30 PM'] }
+        { id: 'doc-1', code: 'DOC-4829', name: 'Dr. Prajan Radhakrishnan, MD', specialty: 'General Medicine & Clinical Telehealth', hospital: 'CareConnect Primary Health & Teleconsultation Center', regNo: 'NMC-48291', exp: '15 Years', fee: '₹0 (ABDM)', slots: ['10:30 AM', '02:30 PM', '05:00 PM'] },
+        { id: 'doc-2', code: 'DOC-3910', name: 'Dr. Anjali Nair, MD', specialty: 'Obstetrics & Maternal Care', hospital: 'Apollo Maternal Care Center', regNo: 'NMC-39102', exp: '12 Years', fee: '₹0 (Ayushman)', slots: ['11:00 AM', '03:30 PM', '06:00 PM'] },
+        { id: 'doc-3', code: 'DOC-5201', name: 'Dr. Vikram Sethi, MS', specialty: 'Orthopedics & Spine Care', hospital: 'Fortis Orthopedic Institute', regNo: 'NMC-52019', exp: '16 Years', fee: '₹0 (Ayushman)', slots: ['09:00 AM', '01:30 PM', '04:30 PM'] },
+        { id: 'doc-4', code: 'DOC-1048', name: 'Dr. Rajesh Sharma, MD', specialty: 'Pulmonology & Critical Care', hospital: 'National Chest & Allergy Institute', regNo: 'NMC-10482', exp: '14 Years', fee: '₹0 (Ayushman)', slots: ['10:00 AM', '04:00 PM'] }
       ];
 
       let appointments = [
-        { id: 'apt-101', doctorName: 'Dr. Rajesh Sharma, MD', specialty: 'General Physician & Pulmonologist', date: 'Tomorrow', time: '10:30 AM', status: 'CONFIRMED' }
+        { id: 'apt-101', doctorName: 'Dr. Prajan Radhakrishnan, MD', specialty: 'General Medicine & Clinical Telehealth', date: 'Tomorrow', time: '10:30 AM', status: 'CONFIRMED' }
       ];
 
       window.addEventListener('DOMContentLoaded', () => {
@@ -1792,6 +1923,7 @@
         renderKendras(currentKendrasList);
         renderDoctors(DOCTORS);
         renderAppointments();
+        updateDoctorConnectionUI();
         fetchAppointmentsFromServer();
         setInterval(fetchAppointmentsFromServer, 4000);
         resetScannerToBlankPlus();
@@ -1915,13 +2047,14 @@
         txt.innerText = "Placing Automated Telehealth Voice Verification Call...";
 
         const cleanPhone = phone.replace(/\D/g, '');
-        const doctorCodeInput = (document.getElementById('reg-doctor-code')?.value || 'DOC-4829').trim().toUpperCase();
+        const doctorCodeInput = (document.getElementById('reg-doctor-code')?.value || '').trim().toUpperCase();
+        const patientEnteredName = (document.getElementById('reg-name')?.value || '').trim() || 'Patient';
 
-        if (cleanPhone === '9999999999' || cleanPhone === '9999999990' || cleanPhone === '999999999') {
+        if (cleanPhone === '9999999999') {
           showToast("Direct ABDM Healthcare Authentication confirmed. Entering workspace...");
           setTimeout(() => {
             loginPatient({
-              name: document.getElementById('reg-name')?.value || "Anita Devi",
+              name: patientEnteredName,
               age: document.getElementById('reg-age')?.value || 28,
               gender: document.getElementById('reg-gender')?.value || 'Female',
               phone: `+91 ${cleanPhone}`,
@@ -1949,7 +2082,7 @@
             showToast("Direct ABDM Healthcare Authentication confirmed. Entering workspace...");
             setTimeout(() => {
               loginPatient({
-                name: document.getElementById('reg-name')?.value || "Anita Devi",
+                name: patientEnteredName,
                 age: document.getElementById('reg-age')?.value || 28,
                 gender: document.getElementById('reg-gender')?.value || 'Female',
                 phone: `+91 ${cleanPhone}`,
@@ -2026,11 +2159,13 @@
           btn.innerText = "Confirm Voice Code & Enter Workspace →";
 
           if (data.success) {
+            const pName = (document.getElementById('reg-name')?.value || '').trim() || "Patient";
+            const pPhone = (document.getElementById('auth-phone')?.value || '').trim();
             loginPatient({
-              name: document.getElementById('reg-name')?.value || "Anita Devi",
+              name: pName,
               age: document.getElementById('reg-age')?.value || 28,
               gender: document.getElementById('reg-gender')?.value || 'Female',
-              phone: document.getElementById('auth-phone')?.value || "9876543210",
+              phone: pPhone ? `+91 ${pPhone.replace(/\D/g, '').slice(-10)}` : "+91 9999999999",
               sector: "Sonpur Ward 2",
               abhaId: updateDynamicAbha(),
               doctorCode: doctorCodeInput
@@ -2073,37 +2208,46 @@
 
       function loginPatient(patient) {
         currentPatient = patient;
-        const assignedDocCode = (patient.doctorCode || document.getElementById('reg-doctor-code')?.value || 'DOC-4829').trim().toUpperCase();
+        const assignedDocCode = (patient.doctorCode || document.getElementById('reg-doctor-code')?.value || '').trim().toUpperCase();
         currentPatient.doctorCode = assignedDocCode;
 
-        // Auto-link into doctor's clinical repository in backend database
-        fetch('/api/patients/link-doctor', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            doctorCode: assignedDocCode,
-            name: patient.name || "Anita Devi",
-            phone: patient.phone || "9876543210",
-            age: patient.age || 28,
-            gender: patient.gender || "Female",
-            village: patient.sector || "Sonpur Ward 2",
-            diagnosis: "ANC 28-Week Routine Follow-up & Iron Absorption Review",
-            abhaId: patient.abhaId || "91-4829-1039-4821"
-          })
-        }).then(r => r.json()).then(res => {
-          if (res.success) {
-            console.log(`[Doctor Repo Sync] Successfully linked into ${res.doctorName}'s repository (${res.doctorCode})`);
-          }
-        }).catch(err => console.warn("Doctor sync notice:", err));
+        if (assignedDocCode) {
+          // Auto-link into doctor's clinical repository in backend database
+          fetch('/api/patients/link-doctor', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              doctorCode: assignedDocCode,
+              name: patient.name || "Patient",
+              phone: patient.phone || "9999999999",
+              age: patient.age || 28,
+              gender: patient.gender || "Female",
+              village: patient.sector || "Sonpur Ward 2",
+              diagnosis: "ANC 28-Week Routine Follow-up & Iron Absorption Review",
+              abhaId: patient.abhaId || "91-4829-1039-4821"
+            })
+          }).then(r => r.json()).then(res => {
+            if (res.success) {
+              console.log(`[Doctor Repo Sync] Successfully linked into ${res.doctorName}'s repository (${res.doctorCode})`);
+              currentPatient.doctorName = res.doctorName;
+              updateDoctorConnectionUI();
+            }
+          }).catch(err => console.warn("Doctor sync notice:", err));
+        }
 
         document.getElementById('nav-user-chip').classList.remove('hidden');
         document.getElementById('nav-user-chip').classList.add('flex');
         document.getElementById('nav-pill-bar').classList.remove('hidden');
         document.getElementById('nav-pill-bar').classList.add('flex');
+        const mobNav = document.getElementById('mobile-nav-pill-bar');
+        if (mobNav) {
+          mobNav.classList.remove('hidden');
+          mobNav.classList.add('flex');
+        }
 
         document.getElementById('user-display-name').innerText = patient.name;
         document.getElementById('user-display-abha').innerText = patient.abhaId;
-        document.getElementById('user-avatar-initial').innerText = patient.name.charAt(0);
+        document.getElementById('user-avatar-initial').innerText = (patient.name || 'P').charAt(0).toUpperCase();
 
         document.getElementById('dash-patient-name').innerText = patient.name;
 
@@ -2111,7 +2255,12 @@
         document.getElementById('patient-workspace-view').classList.remove('hidden');
 
         resetScannerToBlankPlus();
-        showToast(`Welcome ${patient.name}! Linked to Doctor (${assignedDocCode}). Workspace ready.`);
+        updateDoctorConnectionUI();
+        if (assignedDocCode) {
+          showToast(`Welcome ${patient.name}! Linked to Doctor (${assignedDocCode}). Workspace ready.`);
+        } else {
+          showToast(`Welcome ${patient.name}! Connect a doctor under "Connect Doctor" to verify prescriptions.`);
+        }
         lucide.createIcons();
       }
 
@@ -2121,27 +2270,39 @@
         document.getElementById('nav-user-chip').classList.remove('flex');
         document.getElementById('nav-pill-bar').classList.add('hidden');
         document.getElementById('nav-pill-bar').classList.remove('flex');
+        const mobNav = document.getElementById('mobile-nav-pill-bar');
+        if (mobNav) {
+          mobNav.classList.add('hidden');
+          mobNav.classList.remove('flex');
+        }
         document.getElementById('auth-view').classList.remove('hidden');
         handleBackToAuthForm();
         showToast("Logged out successfully.");
       }
 
-      // Tab switcher
+      // Tab switcher (Desktop & Mobile synchronized)
       function switchTab(tKey) {
         activeTab = tKey;
         const tabs = ['overview', 'triage', 'jan-aushadhi', 'doctors', 'appointments', 'reminders'];
         tabs.forEach(t => {
           const btn = document.getElementById(`nav-tab-${t}`);
+          const mBtn = document.getElementById(`m-nav-tab-${t}`);
           const content = document.getElementById(`content-${t}`);
           if (t === tKey) {
             if (content) content.classList.remove('hidden');
             if (btn) {
               btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-2 bg-white dark:bg-[#133f38] text-slate-900 dark:text-white shadow-xs border border-slate-200/80 dark:border-[#205b51] cursor-pointer";
             }
+            if (mBtn) {
+              mBtn.className = "whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 bg-white dark:bg-[#133f38] text-teal-600 dark:text-white shadow-xs border border-slate-200 dark:border-[#205b51] cursor-pointer";
+            }
           } else {
             if (content) content.classList.add('hidden');
             if (btn) {
               btn.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-2 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white cursor-pointer";
+            }
+            if (mBtn) {
+              mBtn.className = "whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1.5 text-slate-600 dark:text-[#8ea7a3] hover:text-slate-900 dark:hover:text-white cursor-pointer";
             }
           }
         });
@@ -2276,8 +2437,247 @@
         reader.readAsDataURL(file);
       }
 
+      // ================= DOCTOR CONNECTION & VERIFICATION GATING =================
+      let pendingOcrScan = null;
+
+      function openConnectDoctorRequiredModal(imageSrc, rxData, fileName) {
+        pendingOcrScan = { imageSrc, rxData, fileName };
+        const modal = document.getElementById('connect-doctor-required-modal');
+        if (modal) modal.classList.remove('hidden');
+        lucide.createIcons();
+      }
+
+      function closeConnectDoctorRequiredModal() {
+        const modal = document.getElementById('connect-doctor-required-modal');
+        if (modal) modal.classList.add('hidden');
+      }
+
+      function quickConnectAndResumeScan(code) {
+        connectDoctorCode(code, () => {
+          closeConnectDoctorRequiredModal();
+          if (pendingOcrScan) {
+            const scan = pendingOcrScan;
+            pendingOcrScan = null;
+            runOcrScan(scan.imageSrc, scan.rxData, scan.fileName);
+          }
+        });
+      }
+
+      function customConnectAndResumeScan() {
+        const code = (document.getElementById('gate-doctor-code-input')?.value || '').trim().toUpperCase();
+        if (!code) {
+          showToast("Please enter a doctor clinical code (e.g. DOC-4829)", true);
+          return;
+        }
+        connectDoctorCode(code, () => {
+          closeConnectDoctorRequiredModal();
+          if (pendingOcrScan) {
+            const scan = pendingOcrScan;
+            pendingOcrScan = null;
+            runOcrScan(scan.imageSrc, scan.rxData, scan.fileName);
+          }
+        });
+      }
+
+      function handleManualDoctorCodeSubmit() {
+        const code = (document.getElementById('manual-doctor-code-input')?.value || '').trim().toUpperCase();
+        if (!code) {
+          showToast("Please enter a valid doctor code.", true);
+          return;
+        }
+        connectDoctorCode(code);
+      }
+
+      async function connectDoctorCode(code, callback) {
+        const cleanCode = (code || '').trim().toUpperCase();
+        if (!cleanCode) {
+          showToast("Please enter a valid doctor code.", true);
+          return;
+        }
+
+        if (!currentPatient) {
+          currentPatient = {
+            name: "Patient",
+            phone: "+91 9999999999",
+            age: 28,
+            gender: "Female",
+            sector: "Sonpur Ward 2",
+            abhaId: typeof updateDynamicAbha === 'function' ? updateDynamicAbha() : "91-4829-1039-4821"
+          };
+        }
+
+        showToast(`Verifying clinical code ${cleanCode}...`);
+        try {
+          const res = await fetch(`/api/doctors/verify-code/${encodeURIComponent(cleanCode)}`);
+          const data = await res.json();
+          if (data.success && data.doctor) {
+            currentPatient.doctorCode = data.doctor.code;
+            currentPatient.doctorName = data.doctor.name;
+            currentPatient.doctorSpecialty = data.doctor.specialty;
+            currentPatient.doctorHospital = data.doctor.hospital;
+
+            fetch('/api/patients/link-doctor', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                doctorCode: data.doctor.code,
+                name: currentPatient.name || "Patient",
+                phone: currentPatient.phone || "9999999999",
+                age: currentPatient.age || 28,
+                gender: currentPatient.gender || "Female",
+                village: currentPatient.sector || "Sonpur Ward 2",
+                diagnosis: "Prescription Digitization & Follow-up Review",
+                abhaId: currentPatient.abhaId || "91-4829-1039-4821"
+              })
+            }).catch(err => console.warn(err));
+
+            updateDoctorConnectionUI();
+            renderDoctors(DOCTORS);
+            showToast(`Connected to ${data.doctor.name} (${data.doctor.code})! Prescriptions unlocked.`);
+            triggerConfetti();
+            if (typeof callback === 'function') callback();
+            return;
+          }
+        } catch (e) {
+          console.warn("Doctor verify fetch error:", e);
+        }
+
+        // Match against local DOCTORS registry
+        const foundLocal = DOCTORS.find(d => d.code === cleanCode || (d.regNo && d.regNo.toUpperCase() === cleanCode));
+        if (foundLocal) {
+          currentPatient.doctorCode = foundLocal.code;
+          currentPatient.doctorName = foundLocal.name;
+          currentPatient.doctorSpecialty = foundLocal.specialty;
+          currentPatient.doctorHospital = foundLocal.hospital;
+          updateDoctorConnectionUI();
+          renderDoctors(DOCTORS);
+          showToast(`Connected to ${foundLocal.name} (${foundLocal.code})! Prescriptions unlocked.`);
+          triggerConfetti();
+          if (typeof callback === 'function') callback();
+        } else if (cleanCode.startsWith('DOC')) {
+          currentPatient.doctorCode = cleanCode;
+          currentPatient.doctorName = "Dr. Prajan Radhakrishnan, MD";
+          updateDoctorConnectionUI();
+          renderDoctors(DOCTORS);
+          showToast(`Connected to Dr. Prajan Radhakrishnan (${cleanCode})! Prescriptions unlocked.`);
+          triggerConfetti();
+          if (typeof callback === 'function') callback();
+        } else {
+          showToast(`Invalid doctor code '${cleanCode}'. Please enter 'DOC-4829'.`, true);
+        }
+      }
+
+      function disconnectDoctor() {
+        if (currentPatient) {
+          currentPatient.doctorCode = '';
+          currentPatient.doctorName = '';
+        }
+        updateDoctorConnectionUI();
+        renderDoctors(DOCTORS);
+        showToast("Disconnected from doctor. Medicine verification is now locked.");
+      }
+
+      function updateDoctorConnectionUI() {
+        const navBadge = document.getElementById('nav-doc-badge');
+        const mNavBadge = document.getElementById('m-nav-doc-badge');
+        const statusPanel = document.getElementById('doctor-connection-status-panel');
+
+        const isConnected = !!(currentPatient && currentPatient.doctorCode);
+        const docCode = isConnected ? currentPatient.doctorCode : '';
+        const docName = isConnected ? (currentPatient.doctorName || 'Dr. Prajan Radhakrishnan, MD') : '';
+
+        if (navBadge) {
+          if (isConnected) {
+            navBadge.className = "px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30";
+            navBadge.innerText = docCode;
+          } else {
+            navBadge.className = "px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30";
+            navBadge.innerText = "Not Linked";
+          }
+        }
+
+        if (mNavBadge) {
+          if (isConnected) {
+            mNavBadge.className = "px-1 py-0.2 rounded-full text-[8px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400";
+            mNavBadge.innerText = docCode;
+          } else {
+            mNavBadge.className = "px-1 py-0.2 rounded-full text-[8px] font-mono font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400";
+            mNavBadge.innerText = "!";
+          }
+        }
+
+        if (statusPanel) {
+          if (isConnected) {
+            statusPanel.className = "p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-3";
+            statusPanel.innerHTML = `
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center border border-emerald-500/30 shrink-0">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>
+                  </div>
+                  <div>
+                    <div class="flex items-center space-x-2">
+                      <h3 class="text-sm font-bold text-slate-900 dark:text-white font-heading">${docName}</h3>
+                      <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">${docCode}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-teal-200/80">Primary Attending Physician • Linked & Verified</p>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold flex items-center space-x-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>Prescriptions Unlocked</span>
+                  </span>
+                  <button onclick="disconnectDoctor()" class="px-2.5 py-1 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold cursor-pointer">
+                    Disconnect
+                  </button>
+                </div>
+              </div>
+              <div class="p-3 rounded-xl bg-white/60 dark:bg-[#061915]/60 border border-emerald-500/20 text-xs text-slate-600 dark:text-teal-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="flex items-center space-x-2">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500 shrink-0"></i>
+                  <span>ABDM Closed-Loop Active: Prescription OCR is linked to your clinician for verification.</span>
+                </div>
+                <button onclick="switchTab('overview')" class="text-teal-600 dark:text-teal-400 font-bold hover:underline shrink-0 text-left sm:text-right cursor-pointer">
+                  Go to Prescription Scanner →
+                </button>
+              </div>
+            `;
+          } else {
+            statusPanel.className = "p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3";
+            statusPanel.innerHTML = `
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-500 flex items-center justify-center border border-amber-500/30 shrink-0">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white font-heading">⚠️ No Doctor Connected</h3>
+                    <p class="text-xs text-amber-600 dark:text-amber-400 font-medium">Prescription & medicine verification is currently locked</p>
+                  </div>
+                </div>
+                <button onclick="connectDoctorCode('DOC-4829')" class="px-3.5 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white text-xs font-bold flex items-center space-x-1.5 cursor-pointer shadow-xs shrink-0">
+                  <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                  <span>Connect DOC-4829</span>
+                </button>
+              </div>
+              <p class="text-xs text-slate-600 dark:text-teal-200/80">
+                To verify prescriptions and access generic dispensary pricing under ABDM protocols, you must connect with your attending physician using their clinical code below.
+              </p>
+            `;
+          }
+        }
+        lucide.createIcons();
+      }
+
       // Animated OCR scanning pipeline
       function runOcrScan(imageSrc, rxData, fileName = null) {
+        // GATING CHECK: Must have connected doctor to verify medicines
+        if (!currentPatient || !currentPatient.doctorCode) {
+          openConnectDoctorRequiredModal(imageSrc, rxData, fileName);
+          return;
+        }
+
         const uploadZone = document.getElementById('rx-upload-zone');
         const scanningView = document.getElementById('rx-scanning-view');
         const resultSummary = document.getElementById('rx-result-summary');
@@ -3382,14 +3782,22 @@
         window.open(url, '_blank');
       }
 
-      // Doctors
+      // Doctors Directory Rendering
       function renderDoctors(list) {
         const container = document.getElementById('doctors-list-container');
-        container.innerHTML = list.map(d => `
-          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-[#061915] border border-slate-200 dark:border-[#17433c] space-y-3 text-xs">
+        if (!container) return;
+        const currentCode = currentPatient?.doctorCode || '';
+
+        container.innerHTML = list.map(d => {
+          const isThisConnected = currentCode && currentCode.toUpperCase() === (d.code || '').toUpperCase();
+          return `
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-[#061915] border ${isThisConnected ? 'border-emerald-500/60 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-[#17433c]'} space-y-3 text-xs">
             <div class="flex justify-between items-start">
               <div>
-                <h4 class="font-bold text-slate-900 dark:text-white text-sm font-heading">${d.name}</h4>
+                <div class="flex items-center space-x-2">
+                  <h4 class="font-bold text-slate-900 dark:text-white text-sm font-heading">${d.name}</h4>
+                  <span class="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-700 dark:text-teal-300 border border-teal-500/30">${d.code || 'DOC-4829'}</span>
+                </div>
                 <p class="text-teal-600 dark:text-teal-400 font-medium text-[11px]">${d.specialty}</p>
                 <p class="text-slate-400 text-[10px]">${d.hospital}</p>
               </div>
@@ -3399,14 +3807,28 @@
               <span>Reg: <strong class="text-slate-600 dark:text-teal-200">${d.regNo}</strong></span>
               <span>Exp: ${d.exp}</span>
             </div>
-            <div class="pt-2 border-t border-slate-200 dark:border-[#17433c] flex items-center justify-between">
-              <span class="text-[10px] text-slate-500 font-semibold">Next Slot: ${d.slots[0]}</span>
-              <button onclick="bookDoctorSlot('${d.name}', '${d.specialty}', '${d.slots[0]}')" class="px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs cursor-pointer">
-                Book Consultation
-              </button>
+            <div class="pt-2 border-t border-slate-200 dark:border-[#17433c] flex items-center justify-between gap-2">
+              <span class="text-[10px] text-slate-500 font-semibold truncate">Next: ${d.slots[0]}</span>
+              <div class="flex items-center space-x-2 shrink-0">
+                ${isThisConnected ? `
+                  <span class="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold flex items-center space-x-1">
+                    <i data-lucide="check" class="w-3 h-3"></i>
+                    <span>Connected</span>
+                  </span>
+                ` : `
+                  <button onclick="connectDoctorCode('${d.code || 'DOC-4829'}')" class="px-2.5 py-1.5 rounded-xl bg-slate-200 dark:bg-[#123832] hover:bg-teal-700 hover:text-white text-slate-800 dark:text-white font-bold text-xs cursor-pointer transition-colors flex items-center space-x-1">
+                    <i data-lucide="link" class="w-3 h-3"></i>
+                    <span>Connect</span>
+                  </button>
+                `}
+                <button onclick="bookDoctorSlot('${d.name}', '${d.specialty}', '${d.slots[0]}')" class="px-2.5 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs cursor-pointer">
+                  Book Slot
+                </button>
+              </div>
             </div>
           </div>
-        `).join('');
+        `}).join('');
+        lucide.createIcons();
       }
 
       async function bookDoctorSlot(doctorName, specialty, time) {

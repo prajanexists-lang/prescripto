@@ -1077,7 +1077,6 @@
         💬 WhatsApp Reminders
       </button>
       <button class="btn-outline" onclick="toggleDoctorTheme()" id="docThemeBtn" title="Toggle Prescripto Dark/Light Mode">🌓 Dark Mode</button>
-      <button class="btn-outline" onclick="lockDoctorDesk()" title="Lock doctor workstation" style="color: #ef4444; border-color: #fca5a5;">🔒 Lock Desk</button>
       <button class="btn-outline" onclick="fetchDeskData()" title="Refresh now">🔄 Refresh Worklist</button>
     </div>
   </header>
@@ -2446,42 +2445,27 @@
       }
     }
 
-    // Doctor Desk Security Gate (PIN Auth)
+    // Doctor Desk Security Gate (Open Clinical Access)
     function checkDoctorAuth() {
-      const isAuth = sessionStorage.getItem('careconnect_doc_auth');
+      sessionStorage.setItem('careconnect_doc_auth', 'verified');
       const authModal = document.getElementById('doctorAuthModal');
-      if (isAuth === 'verified') {
-        authModal.classList.remove('active');
-      } else {
-        authModal.classList.add('active');
-      }
+      if (authModal) authModal.classList.remove('active');
     }
 
     function verifyDoctorPin() {
-      const pin = document.getElementById('docSecurityPinInput').value.trim();
-      const err = document.getElementById('docPinErrorText');
-      if (pin === '1234' || pin === '9999') {
-        sessionStorage.setItem('careconnect_doc_auth', 'verified');
-        document.getElementById('doctorAuthModal').classList.remove('active');
-        showToast(`Doctor credentials authenticated. Welcome ${getActiveDoctorName()}.`, 'success');
-        err.style.display = 'none';
-      } else {
-        err.style.display = 'block';
-      }
+      sessionStorage.setItem('careconnect_doc_auth', 'verified');
+      const authModal = document.getElementById('doctorAuthModal');
+      if (authModal) authModal.classList.remove('active');
     }
 
     function bypassDoctorPin() {
       sessionStorage.setItem('careconnect_doc_auth', 'verified');
-      document.getElementById('doctorAuthModal').classList.remove('active');
-      showToast('Clinician session initialized via NMC bypass.', 'success');
+      const authModal = document.getElementById('doctorAuthModal');
+      if (authModal) authModal.classList.remove('active');
     }
 
     function lockDoctorDesk() {
-      sessionStorage.removeItem('careconnect_doc_auth');
-      document.getElementById('docSecurityPinInput').value = '';
-      document.getElementById('docPinErrorText').style.display = 'none';
-      document.getElementById('doctorAuthModal').classList.add('active');
-      showToast('Doctor workstation locked.', 'success');
+      showToast('Doctor workstation active & authenticated.', 'success');
     }
 
     // View Switching: Triage Worklist vs Calling Data Collector vs Prescription Verification Desk vs Patient Directory vs Appointment Requests
