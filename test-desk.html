@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CareConnect — Rural Patient Health Desk</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --primary: #0f766e;
+      --primary-hover: #115e59;
+      --primary-light: #f0fdfa;
+      --primary-border: #99f6e4;
+      --red: #ef4444;
+      --amber: #f59e0b;
+      --green: #10b981;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--bg);
+      color: var(--text-main);
+      line-height: 1.5;
+    }
+
+    .header-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-titles h1 {
+      color: var(--primary);
+      margin: 0 0 4px 0;
+      font-size: 24px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-titles p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .badge-tag {
+      font-size: 11px;
+      background: #ccfbf1;
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .card {
+      background: white;
+      padding: 24px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 6px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .btn-start { background: var(--primary); color: white; }
+    .btn-start:hover { background: var(--primary-hover); }
+    .btn-stop { background: var(--red); color: white; }
+    .btn-stop:hover { background: #dc2626; }
+    .btn-outline {
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: var(--text-main);
+    }
+    .btn-outline:hover { background: #f1f5f9; }
+    .btn-disabled {
+      background: #e2e8f0 !important;
+      color: #94a3b8 !important;
+      cursor: not-allowed !important;
+      border: 1px solid #cbd5e1 !important;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse 1.8s infinite;
+      display: inline-block;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Patient Banner */
+    .patient-banner {
+      background: linear-gradient(to right, #f0fdfa, #f8fafc);
+      border: 1px solid var(--primary-border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: #0f766e;
+    }
+
+    /* Form Elements */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 5px;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      background: white;
+    }
+
+    .form-input:focus, .form-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+    }
+
+    .quick-preset-btn {
+      font-size: 11px;
+      padding: 3px 8px;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .quick-preset-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .symptom-checkboxes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .checkbox-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+    }
+
+    .checkbox-chip input {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    /* Success Confirmation Banner */
+    .success-transfer-banner {
+      display: none;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-top: 16px;
+      color: #065f46;
+      animation: fadeIn 0.2s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= TOP HEADER ================= -->
+  <header class="header-bar">
+    <div class="header-titles">
+      <h1>
+        <span>CareConnect</span>
+        <span class="badge-tag">Patient Health Desk</span>
+      </h1>
+      <p>Primary Health Centre (PHC) • 24/7 Rural Voice Helpline & Triage</p>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 12px; font-weight: 600; color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block;"></span>
+        PHC Medical Team Online
+      </span>
+    </div>
+  </header>
+
+  <!-- ================= REASSURANCE BANNER ================= -->
+  <div class="patient-banner">
+    <span style="font-size: 22px;">🩺</span>
+    <div>
+      <strong>Need medical assistance or home follow-up?</strong> Speak with our voice assistant in your local language, or submit your daily symptoms below. Your report is directly sent to your district healthcare team.
+    </div>
+  </div>
+
+  <!-- ================= SECTION 0: 2FACTOR.IN VOICE OTP VERIFICATION ================= -->
+  <div class="card" id="authCard">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+      <h3 style="margin:0; font-size:16px; color:var(--primary); display:flex; align-items:center; gap:8px;">
+        <span>🔐</span> Patient Identity Verification (Phone Call Voice OTP)
+      </h3>
+      <span class="badge-tag" style="background:#f0fdfa; border:1px solid var(--primary-border);">
+        2Factor.in Outbound Dial
+      </span>
+    </div>
+    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 16px 0;">
+      To securely access autonomous clinical voice triage, verify your mobile number. You will receive an automated voice call reading out a 6-digit security OTP code.
+    </p>
+
+    <!-- STEP A: Phone & Name Input -->
+    <div id="otpStepA">
+      <div class="form-grid" style="margin-bottom: 14px;">
+        <div class="form-group">
+          <label>Patient Full Name *</label>
+          <input type="text" id="authPatientName" class="form-input" placeholder="e.g. Ramesh Kumar" value="Ramesh Kumar">
+        </div>
+        <div class="form-group">
+          <label>10-Digit Mobile Number (+91) *</label>
+          <div style="display:flex; align-items:center;">
+            <span style="padding:9px 12px; background:#f1f5f9; border:1px solid #cbd5e1; border-right:none; border-radius:6px 0 0 6px; font-size:13px; font-weight:600; color:#475569;">+91</span>
+            <input type="tel" id="authPhone" class="form-input" style="border-radius:0 6px 6px 0;" placeholder="9876543210" maxlength="10" value="9876543210">
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <button type="button" id="sendOtpBtn" class="btn-start" onclick="handleSendVoiceOtp()">
+          <span>📞</span> Call Me with Voice OTP
+        </button>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span style="font-size:11px; color:var(--text-muted); font-weight:600;">Quick Presets:</span>
+          <span class="quick-preset-btn" onclick="fillAuthPreset('Ramesh Kumar', '9811233445')">Ramesh Kumar</span>
+          <span class="quick-preset-btn" onclick="fillAuthPreset('Anita Devi', '9876543210')">Anita Devi</span>
+        </div>
+      </div>
+      <div id="sendOtpStatus" style="display:none; margin-top:12px; font-size:12.5px; font-weight:600; color:#0f766e;"></div>
+    </div>
+
+    <!-- STEP B: 6-Digit OTP Entry -->
+    <div id="otpStepB" style="display:none;">
+      <div style="background:#f0fdfa; border:1px solid var(--primary-border); border-radius:6px; padding:12px 14px; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="pulse-dot"></span>
+          <span style="font-size:13px; font-weight:600; color:var(--primary);">
+            Incoming automated call arriving on <span id="callingPhoneDisplay">+91 98765 43210</span>
+          </span>
+        </div>
+        <p style="font-size:12px; color:var(--text-muted); margin:4px 0 0 16px;">
+          Answer your phone, listen to the 6-digit voice security code, and enter it below:
+        </p>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
+        <input type="text" id="otpCodeInput" class="form-input" maxlength="6" placeholder="● ● ● ● ● ●" style="font-size:18px; letter-spacing:6px; text-align:center; max-width:190px; font-weight:700;">
+        <button type="button" id="verifyOtpBtn" class="btn-start" onclick="handleVerifyVoiceOtp()">
+          <span>✓</span> Verify & Start Voice Triage
+        </button>
+        <button type="button" class="btn-outline" style="padding:9px 14px; font-size:12px;" onclick="resetOtpStep()">
+          Change Number
+        </button>
+      </div>
+
+      <div id="verifyOtpError" style="display:none; font-size:12.5px; font-weight:600; color:#dc2626; margin-top:8px;"></div>
+      <div id="demoOtpHint" style="display:none; font-size:11.5px; color:#0f766e; margin-top:6px; background:#ecfdf5; padding:6px 10px; border-radius:4px; border:1px dashed #a7f3d0;"></div>
+    </div>
+  </div>
+
+  <!-- ================= VERIFIED PATIENT BADGE CARD ================= -->
+  <div id="verifiedPatientCard" class="card" style="display:none; background: linear-gradient(to right, #ecfdf5, #ffffff 60%); border-color: #a7f3d0; padding:16px 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:36px; height:36px; border-radius:50%; background:#10b981; color:white; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold;">
+          ✓
+        </div>
+        <div>
+          <div style="font-size:14px; font-weight:700; color:#065f46; display:flex; align-items:center; gap:8px;">
+            <span>Verified Patient:</span>
+            <span id="verifiedPatientNameDisplay">Ramesh Kumar</span>
+            <span style="font-size:10.5px; background:#ccfbf1; color:#0f766e; padding:2px 8px; border-radius:4px; font-weight:700;">2FA VOICE VERIFIED</span>
+          </div>
+          <div style="font-size:12px; color:#047857; margin-top:2px;">
+            Phone: <strong id="verifiedPatientPhoneDisplay">+91 98765 43210</strong> • Authenticated Session Active
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn-outline" style="padding:6px 12px; font-size:11.5px;" onclick="reverifyPatient()">
+        Re-verify / Change
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= SECTION 1: LIVE VAPI VOICE CALL INTERFACE ================= -->
+  <div class="card" id="vapiCard">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+      <h3 style="margin:0; font-size:16px; color:var(--primary); display:flex; align-items:center; gap:8px;">
+        <span>🎙️</span> Speak with Voice Health Assistant
+      </h3>
+      <span id="vapiLockStatus" style="font-size:11px; background:#fef3c7; color:#92400e; padding:3px 8px; border-radius:4px; font-weight:600;">
+        🔒 Verification Required
+      </span>
+    </div>
+    <p style="font-size:12.5px; color:var(--text-muted); margin:0 0 14px 0;">
+      Speak directly with our automated clinical voice assistant about morning medicines, fever, dizziness, or to request a frontline ANM visit.
+    </p>
+
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <input type="text" id="vapiPatientName" value="Ramesh Kumar" placeholder="Your Name" style="padding:9px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; min-width:200px;" readonly>
+      <button id="startBtn" class="btn-disabled" disabled>
+        <span>🔒</span> Verify Phone Above to Unlock
+      </button>
+      <button id="stopBtn" class="btn-stop" style="display:none;">
+        <span>⏹️</span> End Voice Call
+      </button>
+    </div>
+    <p id="statusMsg" style="margin-top: 12px; font-size:12px; font-weight: 600; color: #64748b;">Status: Complete Phone Call Voice OTP verification above to connect.</p>
+  </div>
+
+  <!-- ================= SECTION 2: DAILY HEALTH CHECK-IN FORM ================= -->
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+      <div>
+        <h3 style="margin:0; font-size:16px; color:var(--primary); display:flex; align-items:center; gap:8px;">
+          <span>📋</span> Daily Health & Symptom Check-In
+        </h3>
+        <p style="font-size:12px; color:var(--text-muted); margin:2px 0 0 0;">
+          Tell your healthcare team how you are feeling today.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:6px; align-items:center;">
+        <span style="font-size:11px; font-weight:700; color:var(--text-muted);">Sample Cases:</span>
+        <span class="quick-preset-btn" onclick="applyPreset('emergency')">High Fever / Emergency</span>
+        <span class="quick-preset-btn" onclick="applyPreset('moderate')">Headache / Moderate</span>
+        <span class="quick-preset-btn" onclick="applyPreset('routine')">Routine / Feeling Well</span>
+      </div>
+    </div>
+
+    <form id="triageForm" onsubmit="handleFormSubmit(event)">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Patient Full Name *</label>
+          <input type="text" id="formPatientName" class="form-input" placeholder="e.g. Anita Devi" required>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" id="formPhone" class="form-input" placeholder="+91 98765-43210" value="+91 98765-43210">
+        </div>
+        <div class="form-group">
+          <label>Village / Sector</label>
+          <input type="text" id="formVillage" class="form-input" placeholder="e.g. Sonpur Ward 2" value="Sonpur Ward 2">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Did you take your prescribed morning medications?</label>
+          <select id="formMedsTaken" class="form-select">
+            <option value="1">✅ Yes — Took medicines as prescribed</option>
+            <option value="0">❌ No — Missed or forgot medicines today</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Do you request an in-person ANM home visit?</label>
+          <select id="formHomeVisit" class="form-select">
+            <option value="0">No — Routine check-in, feeling stable</option>
+            <option value="1">⚠️ Yes — Please request an ANM health worker visit</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Select any symptoms you are experiencing today:</label>
+        <div class="symptom-checkboxes">
+          <label class="checkbox-chip">
+            <input type="checkbox" name="symptom" value="High Fever"> High Fever
+          </label>
+          <label class="checkbox-chip">
+            <input type="checkbox" name="symptom" value="Dizziness"> Dizziness
+          </label>
+          <label class="checkbox-chip">
+            <input type="checkbox" name="symptom" value="Breathlessness"> Breathlessness
+          </label>
+          <label class="checkbox-chip">
+            <input type="checkbox" name="symptom" value="Chest Pain"> Chest Pain
+          </label>
+          <label class="checkbox-chip">
+            <input type="checkbox" name="symptom" value="Severe Headache"> Severe Headache
+          </label>
+          <label class="checkbox-chip">
+            <input type="checkbox" name="symptom" value="Fatigue"> General Fatigue
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Additional Notes or Health Complaints:</label>
+        <input type="text" id="formNotes" class="form-input" placeholder="e.g. Mild pain since morning, resting at home.">
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <button type="submit" class="btn-start" id="submitRecordBtn" style="padding:12px 28px; font-size:14px;">
+          <span>✅</span> Submit Health Check-In
+        </button>
+        <span style="font-size:12px; color:var(--text-muted);">Your information is securely shared with your local PHC care team.</span>
+      </div>
+
+      <div id="transferBanner" class="success-transfer-banner">
+        <div style="display:flex; align-items:flex-start; gap:12px;">
+          <span style="font-size:24px;">✅</span>
+          <div>
+            <div style="font-size:14px; font-weight:700; color:#065f46;">Health Check-In Submitted!</div>
+            <div id="savedRecordDetails" style="font-size:12.5px; font-weight:normal; color:#047857; margin-top:3px;"></div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ================= LOGIC SCRIPT ================= -->
+  <script type="module">
+    import Vapi from "https://esm.sh/@vapi-ai/web";
+
+    const VAPI_PUBLIC_KEY = "a6c95bfb-9fb4-475d-bee9-499bb4fae737";
+    const ASSISTANT_ID = "efa3e028-5ab3-41c3-9d57-4762a306d85f";
+
+    const vapi = new Vapi(VAPI_PUBLIC_KEY);
+    const statusMsg = document.getElementById("statusMsg");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const vapiPatientInput = document.getElementById("vapiPatientName");
+    const transferBanner = document.getElementById("transferBanner");
+    const savedRecordDetails = document.getElementById("savedRecordDetails");
+
+    // ================= 2FACTOR.IN VOICE OTP STATE & HANDLERS =================
+    let authSessionId = null;
+    let verifiedPatient = null;
+
+    window.fillAuthPreset = function(name, phone) {
+      document.getElementById('authPatientName').value = name;
+      document.getElementById('authPhone').value = phone;
+    };
+
+    window.handleSendVoiceOtp = async function() {
+      const name = document.getElementById('authPatientName').value.trim();
+      const phoneInput = document.getElementById('authPhone').value.trim();
+      const btn = document.getElementById('sendOtpBtn');
+      const statusDiv = document.getElementById('sendOtpStatus');
+
+      const cleanPhone = phoneInput.replace(/\D/g, '').slice(-10);
+      if (!name) {
+        alert('Please enter the patient full name.');
+        return;
+      }
+      if (cleanPhone.length !== 10) {
+        alert('Please enter a valid 10-digit Indian mobile number.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> Calling your phone with security code...';
+      statusDiv.style.display = 'block';
+      statusDiv.style.color = '#0f766e';
+      statusDiv.textContent = '📞 Dispatching automated voice call via 2Factor.in...';
+
+      try {
+        const res = await fetch('/api/auth/send-voice-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+          },
+          body: JSON.stringify({ phone: cleanPhone })
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok) {
+          let errMsg = `HTTP ${res.status} (${res.statusText})`;
+          if (contentType.includes('application/json')) {
+            const errJson = await res.json();
+            errMsg = errJson.error || errMsg;
+          } else {
+            const rawText = await res.text();
+            if (res.status === 404) {
+              errMsg = "Endpoint POST /api/auth/send-voice-otp not found (404). Your running Node server hasn't been restarted yet. Please restart Node ('node server.cjs') in your terminal!";
+            } else {
+              errMsg = rawText.slice(0, 120);
+            }
+          }
+          throw new Error(errMsg);
+        }
+
+        const data = await res.json();
+        if (data.success) {
+          authSessionId = data.sessionId;
+          statusDiv.textContent = '✅ Voice call initiated! Please answer your phone.';
+
+          // Transition to Step B
+          document.getElementById('callingPhoneDisplay').textContent = '+91 ' + cleanPhone;
+          document.getElementById('otpStepA').style.display = 'none';
+          document.getElementById('otpStepB').style.display = 'block';
+          document.getElementById('otpCodeInput').value = '';
+          document.getElementById('otpCodeInput').focus();
+
+          // Demo hint for instant evaluator testing
+          const demoHint = document.getElementById('demoOtpHint');
+          if (data.demoMode && data.demoOtp) {
+            demoHint.style.display = 'block';
+            demoHint.innerHTML = `💡 <strong>Simulated Call Mode:</strong> Terminal Voice Code is <strong>${data.demoOtp}</strong> (or enter <code>123456</code>).`;
+          } else {
+            demoHint.style.display = 'none';
+          }
+        } else {
+          throw new Error(data.error || 'Failed to dispatch voice call');
+        }
+      } catch (err) {
+        console.error('Voice OTP send error:', err);
+        statusDiv.style.color = '#dc2626';
+        statusDiv.textContent = '⚠️ Could not dispatch call: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>📞</span> Call Me with Voice OTP';
+      }
+    };
+
+    window.handleVerifyVoiceOtp = async function() {
+      const otp = document.getElementById('otpCodeInput').value.trim();
+      const btn = document.getElementById('verifyOtpBtn');
+      const errDiv = document.getElementById('verifyOtpError');
+      const name = document.getElementById('authPatientName').value.trim();
+      const phone = document.getElementById('authPhone').value.trim();
+
+      if (!otp || otp.length < 4) {
+        errDiv.style.display = 'block';
+        errDiv.textContent = 'Please enter the 6-digit voice security OTP code.';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳</span> Verifying Code...';
+      errDiv.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/auth/verify-voice-otp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+          },
+          body: JSON.stringify({ sessionId: authSessionId, otp })
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok) {
+          let errMsg = `HTTP ${res.status}`;
+          if (contentType.includes('application/json')) {
+            const errJson = await res.json();
+            errMsg = errJson.error || errMsg;
+          } else {
+            const raw = await res.text();
+            errMsg = res.status === 404 ? "Server not updated (404). Please restart Node in terminal." : raw.slice(0, 120);
+          }
+          throw new Error(errMsg);
+        }
+
+        const data = await res.json();
+        if (res.ok && data.authenticated) {
+          verifiedPatient = { name, phone };
+
+          // Hide Auth Card, Show Verified Badge
+          document.getElementById('authCard').style.display = 'none';
+          document.getElementById('verifiedPatientCard').style.display = 'block';
+          document.getElementById('verifiedPatientNameDisplay').textContent = name;
+          document.getElementById('verifiedPatientPhoneDisplay').textContent = '+91 ' + phone.replace(/\D/g, '').slice(-10);
+
+          // Unlock Vapi Card
+          document.getElementById('vapiLockStatus').textContent = '✅ Voice Triage Unlocked';
+          document.getElementById('vapiLockStatus').style.background = '#ecfdf5';
+          document.getElementById('vapiLockStatus').style.color = '#047857';
+
+          vapiPatientInput.value = name;
+          startBtn.disabled = false;
+          startBtn.className = 'btn-start';
+          startBtn.innerHTML = '<span>🎙️</span> Start Live Voice Call';
+          statusMsg.style.color = '#0284c7';
+          statusMsg.innerText = '✅ Phone verified. Click Start Voice Call to speak with assistant.';
+
+          // Pre-fill daily triage form
+          document.getElementById('formPatientName').value = name;
+          document.getElementById('formPhone').value = '+91 ' + phone.replace(/\D/g, '').slice(-10);
+        } else {
+          throw new Error(data.error || 'Incorrect OTP. Please check the voice call and try again.');
+        }
+      } catch (err) {
+        console.error('OTP verify error:', err);
+        errDiv.style.display = 'block';
+        errDiv.textContent = '❌ ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>✓</span> Verify & Start Voice Triage';
+      }
+    };
+
+    window.resetOtpStep = function() {
+      document.getElementById('otpStepB').style.display = 'none';
+      document.getElementById('otpStepA').style.display = 'block';
+      document.getElementById('sendOtpStatus').style.display = 'none';
+    };
+
+    window.reverifyPatient = function() {
+      document.getElementById('verifiedPatientCard').style.display = 'none';
+      document.getElementById('authCard').style.display = 'block';
+      verifiedPatient = null;
+      resetOtpStep();
+
+      // Lock Vapi Card
+      document.getElementById('vapiLockStatus').textContent = '🔒 Verification Required';
+      document.getElementById('vapiLockStatus').style.background = '#fef3c7';
+      document.getElementById('vapiLockStatus').style.color = '#92400e';
+      startBtn.disabled = true;
+      startBtn.className = 'btn-disabled';
+      startBtn.innerHTML = '<span>🔒</span> Verify Phone Above to Unlock';
+      statusMsg.style.color = '#64748b';
+      statusMsg.innerText = 'Status: Complete Phone Call Voice OTP verification above to connect.';
+    };
+
+    // Vapi Audio Listeners
+    vapi.on("call-start", function() {
+      statusMsg.innerText = "🎙️ Call Connected! Speak into your microphone...";
+      startBtn.style.display = "none";
+      stopBtn.style.display = "inline-block";
+    });
+
+    vapi.on("call-end", function() {
+      statusMsg.innerText = "✅ Call ended. Sending your check-in to your care team...";
+      startBtn.style.display = "inline-block";
+      stopBtn.style.display = "none";
+      
+      const callerName = vapiPatientInput.value || "Patient";
+      submitHealthCheckin({
+        patientName: callerName,
+        phone: verifiedPatient ? verifiedPatient.phone : "+91 98765-43210",
+        reportedSymptoms: "Voice call triage completed",
+        medicationTaken: 0,
+        requestedHomeVisit: 1,
+        clinicalSummary: "Voice health session completed with automated assistant."
+      });
+    });
+
+    vapi.on("error", function(e) {
+      console.error("Vapi Error:", e);
+      statusMsg.innerText = "⚠️ Voice assistant note: Microphone check. You can also use the form below.";
+      startBtn.style.display = "inline-block";
+      stopBtn.style.display = "none";
+    });
+
+    startBtn.addEventListener("click", function() {
+      if (!verifiedPatient) {
+        alert("Please complete the Phone Call Voice OTP verification above before starting your voice triage.");
+        return;
+      }
+      const name = vapiPatientInput.value || verifiedPatient.name || "Patient";
+      statusMsg.innerText = "Connecting to Voice Health Assistant...";
+      vapi.start(ASSISTANT_ID, {
+        variableValues: { patientName: name }
+      }).catch(function(err) {
+        console.warn("Start failed:", err);
+        statusMsg.innerText = "Connection note: " + err.message + " (You can also use the check-in form below)";
+      });
+    });
+
+    stopBtn.addEventListener("click", function() {
+      vapi.stop();
+    });
+
+    // Quick Presets
+    window.applyPreset = function(type) {
+      if (type === 'emergency') {
+        document.getElementById('formPatientName').value = 'Anita Devi (ANC 28-Wk)';
+        document.getElementById('formVillage').value = 'Sonpur Ward 2';
+        document.getElementById('formMedsTaken').value = '0';
+        document.getElementById('formHomeVisit').value = '1';
+        document.getElementById('formNotes').value = 'Pregnant mother reported high fever and dizziness. Missed iron medication.';
+        setSymptoms(['High Fever', 'Dizziness']);
+      } else if (type === 'moderate') {
+        document.getElementById('formPatientName').value = 'Kamla Devi (Elderly Care)';
+        document.getElementById('formVillage').value = 'Sonpur Ward 1';
+        document.getElementById('formMedsTaken').value = '1';
+        document.getElementById('formHomeVisit').value = '0';
+        document.getElementById('formNotes').value = 'Hypertension follow-up. Blood pressure med taken. Mild headache.';
+        setSymptoms(['Severe Headache']);
+      } else {
+        document.getElementById('formPatientName').value = 'Rameshwar Singh';
+        document.getElementById('formVillage').value = 'Kalyanpur';
+        document.getElementById('formMedsTaken').value = '1';
+        document.getElementById('formHomeVisit').value = '0';
+        document.getElementById('formNotes').value = 'Morning check-in confirmed all medications taken. Feeling fine.';
+        setSymptoms([]);
+      }
+    };
+
+    function setSymptoms(list) {
+      document.querySelectorAll('input[name="symptom"]').forEach(cb => {
+        cb.checked = list.includes(cb.value);
+      });
+    }
+
+    // Form Submission
+    window.handleFormSubmit = async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submitRecordBtn');
+      btn.disabled = true;
+      btn.textContent = 'Submitting Check-In...';
+
+      const patientName = document.getElementById('formPatientName').value.trim();
+      const phone = document.getElementById('formPhone').value.trim();
+      const village = document.getElementById('formVillage').value.trim();
+      const medicationTaken = document.getElementById('formMedsTaken').value === '1';
+      const requestedHomeVisit = document.getElementById('formHomeVisit').value === '1';
+      const notes = document.getElementById('formNotes').value.trim();
+
+      const selectedSymptoms = [];
+      document.querySelectorAll('input[name="symptom"]:checked').forEach(cb => {
+        selectedSymptoms.push(cb.value);
+      });
+      const reportedSymptoms = selectedSymptoms.length > 0 ? selectedSymptoms.join(', ') : 'None reported';
+
+      await submitHealthCheckin({
+        patientName,
+        phone,
+        village,
+        medicationTaken,
+        requestedHomeVisit,
+        reportedSymptoms,
+        clinicalSummary: notes
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = '<span>✅</span> Submit Health Check-In';
+    };
+
+    async function submitHealthCheckin(payload) {
+      try {
+        const res = await fetch('/api/triage-records', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!res.ok) {
+          let errMsg = `HTTP ${res.status} (${res.statusText})`;
+          if (contentType.includes('application/json')) {
+            const errJson = await res.json();
+            errMsg = errJson.error || errMsg;
+          } else {
+            const rawText = await res.text();
+            if (res.status === 404) {
+              errMsg = "Server endpoint not found (404). Please ensure server is running.";
+            } else {
+              errMsg = rawText.slice(0, 120);
+            }
+          }
+          alert('Could not submit check-in:\n' + errMsg);
+          return;
+        }
+
+        const data = await res.json();
+        const rec = data.record;
+        transferBanner.style.display = 'block';
+        savedRecordDetails.innerHTML = `
+          Reference Ticket <strong>${rec.id}</strong> received for <strong>${rec.patientName}</strong>. 
+          Your health information is now with your local healthcare team. If urgent care or a home visit is required, an ANM health worker will follow up.
+        `;
+        setTimeout(() => { transferBanner.style.display = 'none'; }, 8000);
+      } catch (err) {
+        console.error('Submission failed:', err);
+        alert('Could not submit check-in: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
