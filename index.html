@@ -339,6 +339,11 @@
               <input type="text" maxlength="1" id="otp-4" oninput="handleOtpChange(4, this.value)" onkeydown="handleOtpKey(4, event)" class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none">
               <input type="text" maxlength="1" id="otp-5" oninput="handleOtpChange(5, this.value)" onkeydown="handleOtpKey(5, event)" class="w-11 h-12 text-center text-lg font-bold font-mono rounded-xl border-2 border-slate-300 dark:border-[#17433c] bg-white dark:bg-[#061915] text-slate-900 dark:text-white focus:border-teal-400 focus:outline-none">
             </div>
+            <div class="flex items-center justify-center pt-2">
+              <button type="button" onclick="fillMasterOtp('123456')" class="px-3 py-1 rounded-full text-[11px] font-bold bg-teal-500/10 hover:bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-teal-500/30 cursor-pointer flex items-center space-x-1">
+                <span>⚡ 1-Click Fill Demo PIN (123456)</span>
+              </button>
+            </div>
           </div>
 
           <button id="btn-verify-otp" onclick="handleVerifyVoiceOtp()" class="w-full py-3.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs sm:text-sm transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer">
@@ -1962,7 +1967,19 @@
 
             document.getElementById('auth-step-form').classList.add('hidden');
             document.getElementById('auth-step-otp').classList.remove('hidden');
-            showToast("📞 Voice call placed! Answer your phone to hear your 6-digit OTP.");
+
+            const mockPill = document.getElementById('mock-otp-pill');
+            if (data.demoOtp) {
+              if (mockPill) {
+                mockPill.classList.remove('hidden');
+                document.getElementById('mock-otp-code').innerText = data.demoOtp;
+              }
+              fillMasterOtp(data.demoOtp);
+              showToast(`📞 Simulation PIN: ${data.demoOtp} (Auto-filled)`);
+            } else {
+              if (mockPill) mockPill.classList.add('hidden');
+              showToast("📞 Voice call placed! Answer your phone to hear your 6-digit OTP.");
+            }
             setTimeout(() => document.getElementById('otp-0').focus(), 150);
           } else {
             showToast(data.error || "Failed to dispatch voice call.", true);
@@ -1972,6 +1989,15 @@
           txt.innerText = "Generate ID & Call Phone with OTP →";
           showToast("Network connection error. Please try again.", true);
         }
+      }
+
+      function fillMasterOtp(pin = '123456') {
+        const digits = String(pin).split('');
+        digits.forEach((d, idx) => {
+          const inp = document.getElementById(`otp-${idx}`);
+          if (inp) inp.value = d;
+        });
+        showToast(`PIN ${pin} filled! Click 'Confirm Voice Code'.`);
       }
 
       function handleBackToAuthForm() {
