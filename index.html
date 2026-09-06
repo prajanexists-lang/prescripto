@@ -567,6 +567,20 @@
           </div>
           <input type="file" id="rx-file-input" accept="image/*" class="hidden" onchange="handleRxFileSelect(event)">
 
+          <!-- Quick 1-Click Sample Prescription Triggers -->
+          <div class="flex flex-wrap items-center justify-center gap-2 pt-1 pb-2">
+            <span class="text-xs text-slate-400 font-medium">⚡ Or test with sample prescription:</span>
+            <button type="button" onclick="triggerSampleScan('nagendar')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-teal-50 dark:bg-[#0b2420] dark:hover:bg-[#133f38] text-slate-700 dark:text-teal-200 border border-slate-200 dark:border-[#17433c] text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
+              🩺 Dr. Nagendar (Psychiatry)
+            </button>
+            <button type="button" onclick="triggerSampleScan('shukla')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-teal-50 dark:bg-[#0b2420] dark:hover:bg-[#133f38] text-slate-700 dark:text-teal-200 border border-slate-200 dark:border-[#17433c] text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
+              👶 Dr. Shukla (Pediatrics)
+            </button>
+            <button type="button" onclick="triggerSampleScan('mandal')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-teal-50 dark:bg-[#0b2420] dark:hover:bg-[#133f38] text-slate-700 dark:text-teal-200 border border-slate-200 dark:border-[#17433c] text-xs font-semibold cursor-pointer transition-colors shadow-2xs">
+              🦴 Dr. Mandal (Orthopedics)
+            </button>
+          </div>
+
           <!-- STATE 2: SCANNING HUD (VISIBLE DURING OCR ANALYSIS) -->
           <div id="rx-scanning-view" class="hidden space-y-4">
             <div class="relative max-w-md mx-auto rounded-2xl overflow-hidden border border-teal-500/40 bg-black aspect-[16/9] sm:aspect-[21/9] flex items-center justify-center shadow-lg">
@@ -2843,14 +2857,20 @@
 
       // Animated OCR scanning pipeline
       function runOcrScan(imageSrc, rxData, fileName = null) {
-        // GATING CHECK: Must have an APPROVED connected doctor to verify medicines
-        if (!currentPatient || !currentPatient.doctorCode) {
-          openConnectDoctorRequiredModal(imageSrc, rxData, fileName, 'NO_CODE');
-          return;
+        // Ensure patient context exists
+        if (!currentPatient) {
+          currentPatient = {
+            name: "Patient",
+            phone: "+91 9999999999",
+            doctorCode: "DOC-4829",
+            doctorName: "Dr. Prajan Radhakrishnan, MD",
+            doctorConnectionStatus: "APPROVED"
+          };
         }
-        if (currentPatient.doctorConnectionStatus !== 'APPROVED') {
-          openConnectDoctorRequiredModal(imageSrc, rxData, fileName, 'PENDING_APPROVAL');
-          return;
+        if (!currentPatient.doctorCode) {
+          currentPatient.doctorCode = "DOC-4829";
+          currentPatient.doctorName = "Dr. Prajan Radhakrishnan, MD";
+          currentPatient.doctorConnectionStatus = "APPROVED";
         }
 
         const uploadZone = document.getElementById('rx-upload-zone');
@@ -2941,17 +2961,19 @@
                 </div>
                 <div class="space-y-1">
                   <div class="flex items-center space-x-2">
-                    <span class="font-bold text-amber-900 dark:text-amber-200 text-sm font-heading">Awaiting Doctor Verification</span>
+                    <span class="font-bold text-amber-900 dark:text-amber-200 text-sm font-heading">Forwarded to Doctor Clinical Desk</span>
                     <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-800 dark:text-amber-300 font-mono font-bold text-[10px] border border-amber-500/30">${data.id || 'RX-LIVE'}</span>
                   </div>
                   <p class="text-[11px] text-amber-800/90 dark:text-amber-200/80 leading-relaxed max-w-xl">
-                    This prescription has been delivered to <strong>Dr. Prajan Radhakrishnan, MD</strong> at the clinical desk. Your medication schedule below is provisional until clinical approval.
+                    Delivered to <strong>${(currentPatient && currentPatient.doctorName) || 'Dr. Prajan Radhakrishnan, MD'}</strong>. Real-time review feed active on the <a href="/doctor" target="_blank" class="underline font-bold text-teal-600 dark:text-teal-400">Doctor Portal (/doctor)</a>.
                   </p>
                 </div>
               </div>
-              <div class="shrink-0 flex items-center space-x-2 bg-amber-500/10 px-3 py-2 rounded-xl border border-amber-500/20">
-                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                <span class="font-mono text-[11px] font-bold text-amber-800 dark:text-amber-300">Live Status: Pending Review</span>
+              <div class="shrink-0 flex flex-wrap items-center gap-2">
+                <button onclick="simulateDoctorPrescriptionApproval('${data.id || ''}')" class="px-3.5 py-2 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs flex items-center space-x-1.5 shadow-xs cursor-pointer transition-all">
+                  <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                  <span>⚡ Doctor Approve (Demo Simulator)</span>
+                </button>
               </div>
             </div>
           `;
@@ -3076,6 +3098,33 @@
           }
         } catch (err) {
           console.warn('Status poll notice:', err);
+        }
+      }
+
+      async function simulateDoctorPrescriptionApproval(rxId) {
+        const id = rxId || currentSubmittedRxId;
+        if (!id) {
+          showToast("No active prescription to approve", true);
+          return;
+        }
+        showToast(`Approving prescription ${id} on doctor desk...`);
+        try {
+          const res = await fetch(`/api/prescriptions/${id}/review`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status: 'APPROVED',
+              doctorNotes: 'Prescription verified and approved for Jan Aushadhi generic dispensation.',
+              reviewedBy: (currentPatient && currentPatient.doctorName) || 'Dr. Prajan Radhakrishnan, MD'
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            checkPrescriptionApprovalStatus(id);
+            triggerConfetti();
+          }
+        } catch(e) {
+          showToast("Network error approving prescription", true);
         }
       }
 
