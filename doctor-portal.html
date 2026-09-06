@@ -5,8 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PrescriptoPlus — Doctor Clinical Command Desk</title>
 
-  <!-- Tailwind CSS v4 Browser Build (Identical to Patient Portal) -->
-  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Tailwind CSS with class-based Dark Mode -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            prescripto: {
+              canvas: '#051814',
+              surface: '#0a231f',
+              card: '#0b2420',
+              border: '#133d36',
+              borderHover: '#1c554b',
+              accent: '#14b8a6',
+              emerald: '#10b981',
+              muted: '#8ea7a3'
+            }
+          }
+        }
+      }
+    };
+
+    // Immediate Light Mode default check (prevents flash & persists across refreshes)
+    (function() {
+      const savedTheme = localStorage.getItem('careconnect_theme');
+      // Default to LIGHT mode unless explicitly saved as 'dark'
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+  </script>
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -80,9 +117,9 @@
         </button>
 
         <!-- Theme Toggle Button -->
-        <button onclick="toggleTheme()" class="p-1.5 rounded-xl border border-slate-200 dark:border-[#17433c] text-slate-600 dark:text-teal-200 hover:bg-slate-100 dark:hover:bg-[#0b2420] transition-colors cursor-pointer" title="Toggle Theme">
-          <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
-          <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+        <button onclick="toggleTheme()" class="p-2 rounded-xl border border-slate-200 dark:border-[#17433c] text-slate-600 dark:text-teal-200 hover:bg-slate-100 dark:hover:bg-[#0b2420] transition-colors cursor-pointer flex items-center justify-center" title="Toggle Light / Dark Mode">
+          <i data-lucide="moon" class="w-4 h-4 text-slate-700 block dark:hidden"></i>
+          <i data-lucide="sun" class="w-4 h-4 text-amber-400 hidden dark:block"></i>
         </button>
 
         <!-- Link to Patient Portal -->
@@ -403,7 +440,9 @@
 
     // ================= PASSWORD AUTHENTICATION GATE =================
     function checkDoctorAuth() {
-      const isAuth = sessionStorage.getItem('prescripto_doctor_auth') === 'true';
+      // Check both localStorage and sessionStorage so login persists across refreshes
+      const isAuth = localStorage.getItem('prescripto_doctor_auth') === 'true' || 
+                     sessionStorage.getItem('prescripto_doctor_auth') === 'true';
       const authView = document.getElementById('doctor-auth-view');
       const mainView = document.getElementById('doctor-main-view');
       const lockBtn = document.getElementById('nav-lock-btn');
@@ -414,11 +453,23 @@
         mainView.classList.remove('hidden');
         lockBtn.classList.remove('hidden');
         docSwitcher.classList.remove('hidden');
+
+        // Restore selected doctor if saved
+        const savedDocCode = localStorage.getItem('careconnect_doctor_code') || 'DOC-4829';
+        if (DOCTOR_REGISTRY[savedDocCode]) {
+          handleDoctorSwitch(savedDocCode, false);
+        }
+
+        // Restore active workspace tab if saved
+        const savedTab = localStorage.getItem('careconnect_doctor_tab') || 'prescriptions';
+        switchTab(savedTab);
+
         fetchDeskData();
       } else {
         authView.classList.remove('hidden');
         mainView.classList.add('hidden');
         lockBtn.classList.add('hidden');
+        docSwitcher.classList.add('hidden');
       }
       lucide.createIcons();
     }
@@ -432,6 +483,7 @@
       const validPass = ["doc123", "doctor", "prescripto", "admin"];
 
       if (validPins.includes(pin.trim()) || validPass.includes(pin.trim().toLowerCase()) || pin.trim().length === 4) {
+        localStorage.setItem('prescripto_doctor_auth', 'true');
         sessionStorage.setItem('prescripto_doctor_auth', 'true');
         handleDoctorSwitch(docCode);
         checkDoctorAuth();
@@ -443,6 +495,7 @@
     }
 
     function quickDoctorLogin(code = 'DOC-4829') {
+      localStorage.setItem('prescripto_doctor_auth', 'true');
       sessionStorage.setItem('prescripto_doctor_auth', 'true');
       handleDoctorSwitch(code);
       checkDoctorAuth();
@@ -451,6 +504,7 @@
     }
 
     function lockDoctorDesk() {
+      localStorage.removeItem('prescripto_doctor_auth');
       sessionStorage.removeItem('prescripto_doctor_auth');
       checkDoctorAuth();
       showToast("🔒 Doctor Command Desk locked.");
@@ -464,10 +518,11 @@
     }
 
     // ================= DOCTOR SWITCHER =================
-    function handleDoctorSwitch(code) {
+    function handleDoctorSwitch(code, shouldFetch = true) {
       const doc = DOCTOR_REGISTRY[code];
       if (doc) {
         currentDoctorProfile = doc;
+        localStorage.setItem('careconnect_doctor_code', doc.code);
 
         const selectHeader = document.getElementById('activeDoctorSelect');
         if (selectHeader) selectHeader.value = doc.code;
@@ -483,10 +538,12 @@
         const titleDisp = document.getElementById('panelDoctorNameTitle');
         if (titleDisp) titleDisp.innerText = `🩺 ${doc.name}'s Clinical Panel`;
 
-        renderConnectionRequests();
-        renderPrescriptions();
-        fetchPatients();
-        fetchCallingSessions();
+        if (shouldFetch) {
+          renderConnectionRequests();
+          renderPrescriptions();
+          fetchPatients();
+          fetchCallingSessions();
+        }
       }
     }
 
@@ -498,6 +555,8 @@
     // ================= TABS NAVIGATION =================
     function switchTab(tab) {
       activeTab = tab;
+      localStorage.setItem('careconnect_doctor_tab', tab);
+
       const btnRx = document.getElementById('tab-btn-prescriptions');
       const btnPat = document.getElementById('tab-btn-patients');
       const btnCalls = document.getElementById('tab-btn-calls');
@@ -1399,15 +1458,19 @@
     function toggleTheme() {
       const isDark = document.documentElement.classList.toggle('dark');
       localStorage.setItem('careconnect_theme', isDark ? 'dark' : 'light');
+      lucide.createIcons();
+      showToast(`Switched to ${isDark ? 'Dark Mode' : 'Light Mode'}`);
     }
 
     function initTheme() {
       const saved = localStorage.getItem('careconnect_theme');
-      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      // Strictly default to LIGHT mode unless explicitly saved as 'dark'
+      if (saved === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
       }
+      lucide.createIcons();
     }
 
     function showToast(msg, isError = false) {
@@ -1478,7 +1541,9 @@
 
       // Poll connection requests, scanned prescriptions, and AI calling sessions every 2.5 seconds
       setInterval(() => {
-        if (sessionStorage.getItem('prescripto_doctor_auth') === 'true') {
+        const isAuth = localStorage.getItem('prescripto_doctor_auth') === 'true' || 
+                       sessionStorage.getItem('prescripto_doctor_auth') === 'true';
+        if (isAuth) {
           fetchConnectionRequests();
           fetchPrescriptions();
           fetchCallingSessions();
